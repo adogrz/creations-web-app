@@ -1,0 +1,57 @@
+import { Shirt, LayoutGrid, Star, Sparkles } from 'lucide-react'
+import { AdminTable } from '@/components/admin/admin-table'
+import { categories, costumes } from '@/lib/data'
+
+export default function AdminDashboardPage() {
+  const stats = [
+    { icon: Shirt, label: 'Total disfraces', value: costumes.length },
+    { icon: LayoutGrid, label: 'Categorías', value: categories.length },
+    {
+      icon: Star,
+      label: 'Destacados',
+      value: costumes.filter((c) => c.featured).length,
+    },
+    {
+      icon: Sparkles,
+      label: 'Para niños',
+      value: costumes.filter((c) => c.audience !== 'Adults').length,
+    },
+  ]
+
+  return (
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
+      <div>
+        <h1 className="font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+          Panel de control
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Administra tu catálogo de disfraces artesanales.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <div
+            key={stat.label}
+            className="flex items-center gap-4 rounded-xl bg-card p-3.5 ring-1 ring-foreground/5 shadow-xs"
+          >
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <stat.icon className="size-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="font-heading text-xl font-semibold leading-none tabular-nums">
+                {stat.value}
+              </p>
+              <p className="text-xs text-muted-foreground mt-1 truncate">{stat.label}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <h2 className="mb-4 font-heading text-lg font-medium">Todos los disfraces</h2>
+        <AdminTable />
+      </div>
+    </div>
+  )
+}
