@@ -4,7 +4,7 @@ import { SearchBar } from '@/components/search-bar'
 export function HomeHero() {
   return (
     <section className="relative">
-      <div className="mx-auto w-full max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pb-8 lg:pb-8 lg:pt-20">
+      <div className="mx-auto w-full max-w-2xl px-4 pb-6 pt-12 sm:px-6 sm:pb-8 lg:pb-8 lg:pt-20">
         <div className="flex flex-col gap-6">
           <span className="font-serif italic text-primary text-base tracking-wide sm:text-lg">
             Un pequeño taller de disfraces artesanales
