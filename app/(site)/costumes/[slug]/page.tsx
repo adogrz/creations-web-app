@@ -5,7 +5,6 @@ import { ArrowLeft, Clock, Tag, Wallet, Users } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ImageGallery } from '@/components/image-gallery'
 import { ContactButtons } from '@/components/contact-buttons'
-import { ShareCostumeButton } from '@/components/share-costume-button'
 import { CostumeCard } from '@/components/costume-card'
 import {
   costumes,
@@ -71,7 +70,11 @@ export default async function CostumeDetailPage({
       </Link>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <ImageGallery images={costume.images} alt={costume.name} />
+        <ImageGallery
+          images={costume.images}
+          alt={costume.name}
+          shareUrl={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.vercel.app'}/costumes/${costume.slug}`}
+        />
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
@@ -122,12 +125,7 @@ export default async function CostumeDetailPage({
             <ContactButtons costumeName={costume.name} />
           </div>
 
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <ShareCostumeButton
-              costumeName={costume.name}
-              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.vercel.app'}/costumes/${costume.slug}`}
-            />
-          </div>
+
         </div>
       </div>
 
