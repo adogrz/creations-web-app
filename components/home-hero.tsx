@@ -35,7 +35,7 @@ export function HomeHero() {
           </div>
         </div>
 
-        <div className="relative">
+        <div className="hidden lg:block relative">
           <div className="relative aspect-4/3 overflow-hidden rounded-[2.5rem] rounded-tr-none ring-1 ring-foreground/10 lg:aspect-square">
             <Image
               src="/images/hero-studio.png"
