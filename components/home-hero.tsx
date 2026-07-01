@@ -4,16 +4,16 @@ import { SearchBar } from '@/components/search-bar'
 
 export function HomeHero() {
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative">
       <div className="mx-auto grid max-w-6xl items-center gap-10 px-4 pb-8 pt-12 sm:px-6 lg:grid-cols-2 lg:gap-12 lg:pt-20">
         <div className="flex flex-col gap-6">
-          <span className="font-serif italic text-primary text-lg tracking-wide">
+          <span className="font-serif italic text-primary text-base tracking-wide sm:text-lg">
             Un pequeño taller de disfraces artesanales
           </span>
-          <h1 className="font-heading text-5xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-6xl lg:text-7xl">
+          <h1 className="font-heading text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-5xl lg:text-7xl">
             Disfraces hechos <span className="font-serif italic font-medium text-primary">a mano</span>, con <span className="font-serif italic font-medium text-primary">amor</span>.
           </h1>
-          <p className="max-w-md text-lg leading-relaxed text-muted-foreground text-pretty">
+          <p className="text-base leading-relaxed text-muted-foreground text-pretty sm:max-w-md sm:text-lg">
             Creations es un pequeño taller que confecciona disfraces únicos para
             niños y adultos. Explora nuestro trabajo y escríbenos para dar vida al
             disfraz de tus sueños.
