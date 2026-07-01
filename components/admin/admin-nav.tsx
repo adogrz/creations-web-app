@@ -2,12 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, PlusCircle, Shirt, ArrowLeft } from 'lucide-react'
+import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, LogOut } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { logoutAction } from '@/lib/admin-auth'
 
 const items = [
   { href: '/admin', label: 'Panel', icon: LayoutGrid, exact: true },
   { href: '/admin/costumes', label: 'Disfraces', icon: Shirt, exact: false },
+  { href: '/admin/categories', label: 'Categorías', icon: FolderOpen, exact: false },
   { href: '/admin/costumes/new', label: 'Nuevo', icon: PlusCircle, exact: false },
 ]
 
@@ -45,13 +47,24 @@ export function AdminNav() {
           ))}
         </nav>
 
-        <Link
-          href="/"
-          className="mt-auto flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color]"
-        >
-          <ArrowLeft className="size-4" aria-hidden="true" />
-          Volver al sitio
-        </Link>
+        <div className="mt-auto flex flex-col gap-1">
+          <Link
+            href="/"
+            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color]"
+          >
+            <ArrowLeft className="size-4" aria-hidden="true" />
+            Volver al sitio
+          </Link>
+          <form action={logoutAction}>
+            <button
+              type="submit"
+              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color]"
+            >
+              <LogOut className="size-4" aria-hidden="true" />
+              Cerrar sesión
+            </button>
+          </form>
+        </div>
       </aside>
 
       {/* Mobile bottom nav */}

@@ -13,10 +13,13 @@ export type Costume = {
   shortDescription: string
   description: string
   priceRange: string
+  priceMin?: number
+  priceMax?: number
   creationTime: string
   tags: string[]
   images: string[]
   featured?: boolean
+  published?: boolean
 }
 
 export const categories: Category[] = [
