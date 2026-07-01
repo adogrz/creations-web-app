@@ -1,11 +1,10 @@
-import Image from 'next/image'
 import { Sparkles, Heart, Scissors } from 'lucide-react'
 import { SearchBar } from '@/components/search-bar'
 
 export function HomeHero() {
   return (
     <section className="relative">
-      <div className="mx-auto grid grid-cols-1 max-w-6xl items-center gap-6 px-4 pb-6 pt-12 sm:px-6 sm:pb-8 lg:grid-cols-2 lg:gap-10 lg:pb-8 lg:pt-20">
+      <div className="mx-auto w-full max-w-6xl px-4 pb-6 pt-12 sm:px-6 sm:pb-8 lg:pb-8 lg:pt-20">
         <div className="flex flex-col gap-6">
           <span className="font-serif italic text-primary text-base tracking-wide sm:text-lg">
             Un pequeño taller de disfraces artesanales
@@ -32,27 +31,6 @@ export function HomeHero() {
               <Sparkles className="size-4 text-primary" aria-hidden="true" />
               Niños y adultos
             </span>
-          </div>
-        </div>
-
-        <div className="hidden lg:block relative">
-          <div className="relative aspect-4/3 overflow-hidden rounded-[2.5rem] rounded-tr-none ring-1 ring-foreground/10 lg:aspect-square">
-            <Image
-              src="/images/hero-studio.png"
-              alt="Un taller de disfraces hechos a mano con creaciones coloridas y telas"
-              fill
-              priority
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              className="object-cover"
-            />
-          </div>
-          <div className="absolute -bottom-5 -left-5 hidden rounded-full bg-primary text-primary-foreground size-24 flex-col items-center justify-center text-center shadow-lg sm:flex border border-primary-foreground/10 ring-8 ring-background">
-            <p className="font-serif italic text-2xl font-bold leading-none tabular-nums">
-              100+
-            </p>
-            <p className="text-[9px] uppercase tracking-wider font-semibold opacity-90 mt-1">
-              creados
-            </p>
           </div>
         </div>
       </div>
