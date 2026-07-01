@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { WhatsAppIcon, MessengerIcon } from '@/components/icons'
-import { whatsappLink, messengerLink } from '@/lib/data'
+import { WhatsAppIcon, MessengerIcon, InstagramIcon } from '@/components/icons'
+import { whatsappLink, messengerLink, instagramLink } from '@/lib/data'
 
 export function SiteFooter() {
   return (
@@ -73,6 +73,17 @@ export function SiteFooter() {
                   >
                     <MessengerIcon className="size-4 text-primary" />
                     Messenger
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={instagramLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:text-foreground"
+                  >
+                    <InstagramIcon className="size-4 text-primary" />
+                    Instagram
                   </a>
                 </li>
               </ul>

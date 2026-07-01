@@ -199,16 +199,30 @@ export function getRelatedCostumes(costume: Costume, limit = 3) {
     .slice(0, limit)
 }
 
-const WHATSAPP_NUMBER = '15551234567'
-const MESSENGER_HANDLE = 'creationsstudio'
+const WHATSAPP_NUMBER =
+  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '50376772999'
+const MESSENGER_PAGE =
+  process.env.NEXT_PUBLIC_MESSENGER_HANDLE ?? 'creaciones1.sv'
+export const INSTAGRAM_HANDLE =
+  process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? 'creations.sv_'
 
-export function whatsappLink(costumeName?: string) {
-  const text = costumeName
-    ? `¡Hola Creations! Me encantaría saber más sobre el disfraz de "${costumeName}".`
+export function whatsappLink(costumeUrl?: string) {
+  const text = costumeUrl
+    ? `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
     : `¡Hola Creations! Me encantaría conocer más sobre sus disfraces personalizados.`
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
 }
 
-export function messengerLink() {
-  return `https://m.me/${MESSENGER_HANDLE}`
+export function messengerLink(costumeUrl?: string) {
+  // Facebook Messenger does not support pre-filling text via m.me links.
+  // The best available deep link on mobile is fb-messenger://share with a URL,
+  // but that requires JavaScript. We pass the costume URL as the page ref so
+  // the agent can see it in the conversation context.
+  const base = `https://m.me/${MESSENGER_PAGE}`
+  if (costumeUrl) return `${base}?ref=${encodeURIComponent(costumeUrl)}`
+  return base
+}
+
+export function instagramLink() {
+  return `https://www.instagram.com/${INSTAGRAM_HANDLE}`
 }

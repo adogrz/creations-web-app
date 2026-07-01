@@ -118,7 +118,9 @@ export default async function CostumeDetailPage({
               ¿Te encanta esta pieza? Escríbenos para ordenarla o solicitar tu propia
               versión personalizada.
             </p>
-            <ContactButtons costumeName={costume.name} />
+            <ContactButtons
+              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://creations.vercel.app'}/costumes/${costume.slug}`}
+            />
           </div>
 
 
