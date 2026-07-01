@@ -63,8 +63,10 @@ export function AdminForm({ costume }: AdminFormProps) {
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main fields */}
+      {/* ── Desktop: 3-col grid. Mobile: single column, reordered via order-* ── */}
+      <div className="grid gap-5 lg:grid-cols-3">
+
+        {/* ── Col 1-2: main fields (always rendered first in DOM) ── */}
         <div className="flex flex-col gap-5 lg:col-span-2">
 
           {/* Details card */}
@@ -83,12 +85,12 @@ export function AdminForm({ costume }: AdminFormProps) {
               </div>
 
               {/* Selects — single column on mobile, 2 cols on sm+ */}
-              <div className="flex flex-col gap-4 sm:grid sm:grid-cols-2">
+              <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="category-select">Categoría</Label>
                   <Select value={category} onValueChange={(v) => setCategory(v)}>
                     <SelectTrigger id="category-select" className="w-full">
-                      <SelectValue placeholder="Seleccionar categoría" />
+                      <SelectValue placeholder="Categoría" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((c) => (
@@ -103,7 +105,7 @@ export function AdminForm({ costume }: AdminFormProps) {
                   <Label htmlFor="audience-select">Público</Label>
                   <Select value={audience} onValueChange={(v) => setAudience(v)}>
                     <SelectTrigger id="audience-select" className="w-full">
-                      <SelectValue placeholder="Seleccionar público" />
+                      <SelectValue placeholder="Público" />
                     </SelectTrigger>
                     <SelectContent>
                       {audiences.map((a) => (
@@ -147,9 +149,9 @@ export function AdminForm({ costume }: AdminFormProps) {
               {/* Price range — two number fields */}
               <div className="flex flex-col gap-2">
                 <Label>Rango de precios</Label>
-                <div className="flex items-center gap-3">
-                  <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-border bg-background px-3 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
-                    <span className="shrink-0 text-sm text-muted-foreground">$ mín.</span>
+                <div className="flex items-center gap-2">
+                  <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-background px-2.5 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
+                    <span className="shrink-0 text-xs text-muted-foreground">$ mín.</span>
                     <input
                       name="priceMin"
                       type="number"
@@ -159,12 +161,12 @@ export function AdminForm({ costume }: AdminFormProps) {
                       onChange={(e) => setPriceMin(e.target.value)}
                       placeholder="120"
                       aria-label="Precio mínimo en USD"
-                      className="min-w-0 flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
+                      className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
                     />
                   </div>
-                  <span className="shrink-0 text-muted-foreground">—</span>
-                  <div className="flex min-w-0 flex-1 items-center gap-1.5 rounded-lg border border-border bg-background px-3 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
-                    <span className="shrink-0 text-sm text-muted-foreground">$ máx.</span>
+                  <span className="shrink-0 text-muted-foreground text-sm">—</span>
+                  <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-background px-2.5 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
+                    <span className="shrink-0 text-xs text-muted-foreground">$ máx.</span>
                     <input
                       name="priceMax"
                       type="number"
@@ -174,7 +176,7 @@ export function AdminForm({ costume }: AdminFormProps) {
                       onChange={(e) => setPriceMax(e.target.value)}
                       placeholder="180"
                       aria-label="Precio máximo en USD"
-                      className="min-w-0 flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
+                      className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
                     />
                   </div>
                 </div>
@@ -264,15 +266,16 @@ export function AdminForm({ costume }: AdminFormProps) {
           </div>
         </div>
 
-        {/* Image upload + actions */}
+        {/* ── Col 3: image upload + actions ── */}
         <div className="flex flex-col gap-5">
+          {/* Images */}
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <h2 className="mb-4 font-heading text-lg font-medium">Imágenes</h2>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               aria-label="Subir imágenes"
-              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
             >
               <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UploadCloud className="size-5" aria-hidden="true" />
@@ -293,7 +296,7 @@ export function AdminForm({ costume }: AdminFormProps) {
             />
 
             {previews.length > 0 && (
-              <div className="mt-4 grid grid-cols-3 gap-2">
+              <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
                 {previews.map((src, i) => (
                   <div
                     key={`${src}-${i}`}
@@ -305,7 +308,6 @@ export function AdminForm({ costume }: AdminFormProps) {
                       alt={`Imagen subida ${i + 1}`}
                       className="size-full object-cover"
                     />
-                    {/* Always visible on mobile; hover-reveal on desktop */}
                     <button
                       type="button"
                       onClick={() => removePreview(i)}
@@ -320,6 +322,7 @@ export function AdminForm({ costume }: AdminFormProps) {
             )}
           </div>
 
+          {/* Actions */}
           <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <Button type="submit" size="lg" className="w-full rounded-full">
               {saved ? (
