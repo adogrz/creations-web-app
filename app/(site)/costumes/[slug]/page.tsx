@@ -96,7 +96,7 @@ export default async function CostumeDetailPage({
                 </span>
                 <div className="min-w-0">
                   <dt className="text-xs text-muted-foreground leading-tight">{d.label}</dt>
-                  <dd className="font-medium leading-snug break-words">{d.value}</dd>
+                  <dd className="font-medium leading-snug warp-break-words">{d.value}</dd>
                 </div>
               </div>
             ))}
