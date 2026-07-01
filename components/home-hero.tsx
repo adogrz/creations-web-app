@@ -6,9 +6,6 @@ export function HomeHero() {
     <section className="relative">
       <div className="mx-auto w-full max-w-2xl px-4 pb-6 pt-12 sm:px-6 sm:pb-8 lg:pb-8 lg:pt-20">
         <div className="flex flex-col gap-6 items-center text-center">
-          <span className="font-serif italic text-primary text-base tracking-wide sm:text-lg">
-            Un pequeño taller de disfraces artesanales
-          </span>
           <h1 className="font-heading text-4xl font-semibold leading-[1.05] tracking-tight text-balance sm:text-5xl lg:text-7xl">
             Disfraces hechos <span className="font-serif italic font-medium text-primary">a mano</span>, con <span className="font-serif italic font-medium text-primary">amor</span>.
           </h1>
