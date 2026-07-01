@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Phone, MessageCircle, Instagram, Info } from 'lucide-react'
+import { Check, Phone, MessageCircle, Info } from 'lucide-react'
+import { InstagramIcon } from '@/components/icons'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
@@ -93,7 +94,7 @@ export function AdminSettingsForm() {
       {/* Instagram */}
       <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
         <div className="mb-4 flex items-center gap-2">
-          <Instagram className="size-4 text-primary" aria-hidden="true" />
+          <InstagramIcon className="size-4 text-primary" aria-hidden="true" />
           <h2 className="font-heading text-base font-medium">Instagram</h2>
         </div>
         <div className="flex flex-col gap-2">
