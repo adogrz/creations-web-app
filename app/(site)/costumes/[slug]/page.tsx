@@ -70,11 +70,7 @@ export default async function CostumeDetailPage({
       </Link>
 
       <div className="mt-6 grid gap-8 lg:grid-cols-2 lg:gap-12">
-        <ImageGallery
-          images={costume.images}
-          alt={costume.name}
-          shareUrl={`${process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.vercel.app'}/costumes/${costume.slug}`}
-        />
+        <ImageGallery images={costume.images} alt={costume.name} />
 
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">

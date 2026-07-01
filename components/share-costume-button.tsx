@@ -5,21 +5,18 @@ import { Share2, Copy, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface ShareCostumeButtonProps {
-  costumeName: string
-  costumeUrl: string
   className?: string
 }
 
-export function ShareCostumeButton({ costumeName, costumeUrl, className }: ShareCostumeButtonProps) {
+export function ShareCostumeButton({ className }: ShareCostumeButtonProps) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
-          title: costumeName,
-          text: `Mira este disfraz en Creations: ${costumeName}`,
-          url: costumeUrl,
+          title: document.title,
+          url: typeof window !== 'undefined' ? window.location.href : '',
         })
         return
       } catch {
@@ -28,9 +25,12 @@ export function ShareCostumeButton({ costumeName, costumeUrl, className }: Share
     }
     // Fallback: copy to clipboard
     try {
-      await navigator.clipboard.writeText(costumeUrl)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const url = typeof window !== 'undefined' ? window.location.href : ''
+      if (url) {
+        await navigator.clipboard.writeText(url)
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     } catch {
       // ignore
     }

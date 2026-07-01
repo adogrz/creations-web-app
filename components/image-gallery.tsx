@@ -8,11 +8,9 @@ import { ShareCostumeButton } from '@/components/share-costume-button'
 export function ImageGallery({
   images,
   alt,
-  shareUrl,
 }: {
   images: string[]
   alt: string
-  shareUrl?: string
 }) {
   const [active, setActive] = useState(0)
   const gallery = images.length > 0 ? images : ['/placeholder.svg']
@@ -28,11 +26,9 @@ export function ImageGallery({
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover"
         />
-        {shareUrl && (
-          <div className="absolute right-3 top-3">
-            <ShareCostumeButton costumeName={alt} costumeUrl={shareUrl} />
-          </div>
-        )}
+        <div className="absolute right-3 top-3">
+          <ShareCostumeButton />
+        </div>
       </div>
       {gallery.length > 1 && (
         <div className="flex gap-3">
