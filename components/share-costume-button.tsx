@@ -43,18 +43,19 @@ export function ShareCostumeButton({ costumeName, costumeUrl }: ShareCostumeButt
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="w-full gap-2 rounded-full sm:w-auto"
-        >
-          <Share2 className="size-4" />
-          Compartir
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
+    <div suppressHydrationWarning>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full gap-2 rounded-full sm:w-auto"
+          >
+            <Share2 className="size-4" />
+            Compartir
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuItem asChild>
           <a
             href={shareLinks.whatsapp}
@@ -151,7 +152,8 @@ export function ShareCostumeButton({ costumeName, costumeUrl }: ShareCostumeButt
             )}
           </div>
         </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
