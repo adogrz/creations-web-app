@@ -29,7 +29,7 @@ export function SearchBar({ className }: { className?: string }) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar hada, dragón, mago…"
+        placeholder="Buscar Rumi, Elsa, Spider-Man…"
         aria-label="Buscar disfraces"
         className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
       />
