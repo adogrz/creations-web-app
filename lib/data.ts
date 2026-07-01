@@ -214,15 +214,23 @@ export function whatsappLink(costumeUrl?: string) {
 }
 
 export function messengerLink(costumeUrl?: string) {
-  // Facebook Messenger does not support pre-filling text via m.me links.
-  // The best available deep link on mobile is fb-messenger://share with a URL,
-  // but that requires JavaScript. We pass the costume URL as the page ref so
-  // the agent can see it in the conversation context.
-  const base = `https://m.me/${MESSENGER_PAGE}`
-  if (costumeUrl) return `${base}?ref=${encodeURIComponent(costumeUrl)}`
+  // m.me does not support pre-filled text. The ?text= param works only on
+  // facebook.com/messages/t/ which opens Messenger on web and deep-links
+  // to the app on mobile. We include the costume URL in the message.
+  const base = `https://www.facebook.com/messages/t/${MESSENGER_PAGE}`
+  if (costumeUrl) {
+    const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
+    return `${base}?text=${encodeURIComponent(text)}`
+  }
   return base
 }
 
-export function instagramLink() {
-  return `https://www.instagram.com/${INSTAGRAM_HANDLE}`
+export function instagramLink(costumeUrl?: string) {
+  // ig.me/m/HANDLE opens a direct message instead of the public profile.
+  const base = `https://ig.me/m/${INSTAGRAM_HANDLE}`
+  if (costumeUrl) {
+    const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
+    return `${base}?text=${encodeURIComponent(text)}`
+  }
+  return base
 }

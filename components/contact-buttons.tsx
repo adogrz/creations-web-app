@@ -29,13 +29,13 @@ export function ContactButtons({ costumeUrl, className }: ContactButtonsProps) {
         Mensaje por Messenger
       </a>
       <a
-        href={instagramLink()}
+        href={instagramLink(costumeUrl)}
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-[background-color,color,border-color] hover:bg-muted sm:w-auto"
       >
         <InstagramIcon className="size-5 text-primary" />
-        Instagram
+        DM en Instagram
       </a>
     </div>
   )
