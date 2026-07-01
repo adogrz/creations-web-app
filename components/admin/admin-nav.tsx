@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, LogOut } from 'lucide-react'
+import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, LogOut, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logoutAction } from '@/lib/admin-auth'
 
@@ -11,6 +12,7 @@ const items = [
   { href: '/admin/costumes', label: 'Disfraces', icon: Shirt, exact: false },
   { href: '/admin/categories', label: 'Categorías', icon: FolderOpen, exact: false },
   { href: '/admin/costumes/new', label: 'Nuevo', icon: PlusCircle, exact: false },
+  { href: '/admin/settings', label: 'Config.', icon: Settings, exact: false },
 ]
 
 export function AdminNav() {
@@ -23,9 +25,15 @@ export function AdminNav() {
       {/* Desktop sidebar */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-border bg-sidebar p-5 md:flex" aria-label="Admin sidebar">
         <Link href="/admin" className="flex items-center gap-2">
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground font-heading text-sm font-bold">
-            C
-          </span>
+          <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary">
+            <Image
+              src="/creations-logo.webp"
+              alt="Creations logo"
+              width={32}
+              height={32}
+              className="object-cover size-full"
+            />
+          </div>
           <span className="font-heading text-lg font-semibold">Studio</span>
         </Link>
 
@@ -67,23 +75,41 @@ export function AdminNav() {
         </div>
       </aside>
 
-      {/* Mobile bottom nav */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 flex border-t border-border bg-background/95 backdrop-blur-md md:hidden" aria-label="Admin bottom navigation">
-        {items.map((item) => (
+      {/* Mobile bottom nav — includes all items + back + logout */}
+      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-md md:hidden" aria-label="Admin bottom navigation">
+        <div className="flex">
+          {items.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium transition-[color]',
+                isActive(item.href, item.exact)
+                  ? 'text-primary'
+                  : 'text-muted-foreground',
+              )}
+            >
+              <item.icon className="size-5" aria-hidden="true" />
+              {item.label}
+            </Link>
+          ))}
           <Link
-            key={item.href}
-            href={item.href}
-            className={cn(
-              'flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium transition-[color]',
-              isActive(item.href, item.exact)
-                ? 'text-primary'
-                : 'text-muted-foreground',
-            )}
+            href="/"
+            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground"
           >
-            <item.icon className="size-5" aria-hidden="true" />
-            {item.label}
+            <ArrowLeft className="size-5" aria-hidden="true" />
+            Sitio
           </Link>
-        ))}
+          <form action={logoutAction} className="flex flex-1">
+            <button
+              type="submit"
+              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground"
+            >
+              <LogOut className="size-5" aria-hidden="true" />
+              Salir
+            </button>
+          </form>
+        </div>
       </nav>
     </>
   )

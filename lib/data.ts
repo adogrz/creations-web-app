@@ -199,25 +199,33 @@ export function getRelatedCostumes(costume: Costume, limit = 3) {
     .slice(0, limit)
 }
 
-const WHATSAPP_NUMBER =
-  process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '50376772999'
-const MESSENGER_PAGE =
-  process.env.NEXT_PUBLIC_MESSENGER_HANDLE ?? 'creaciones1.sv'
-export const INSTAGRAM_HANDLE =
-  process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? 'creations.sv_'
+function getSettings() {
+  const env = {
+    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '50376772999',
+    messengerHandle: process.env.NEXT_PUBLIC_MESSENGER_HANDLE ?? 'creaciones1.sv',
+    instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? 'creations.sv_',
+  }
+  if (typeof window === 'undefined') return env
+  try {
+    const raw = localStorage.getItem('creations_settings')
+    if (!raw) return env
+    return { ...env, ...JSON.parse(raw) }
+  } catch {
+    return env
+  }
+}
 
 export function whatsappLink(costumeUrl?: string) {
+  const { whatsappNumber } = getSettings()
   const text = costumeUrl
     ? `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
     : `¡Hola Creations! Me encantaría conocer más sobre sus disfraces personalizados.`
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`
 }
 
 export function messengerLink(costumeUrl?: string) {
-  // m.me does not support pre-filled text. The ?text= param works only on
-  // facebook.com/messages/t/ which opens Messenger on web and deep-links
-  // to the app on mobile. We include the costume URL in the message.
-  const base = `https://www.facebook.com/messages/t/${MESSENGER_PAGE}`
+  const { messengerHandle } = getSettings()
+  const base = `https://www.facebook.com/messages/t/${messengerHandle}`
   if (costumeUrl) {
     const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
     return `${base}?text=${encodeURIComponent(text)}`
@@ -226,8 +234,8 @@ export function messengerLink(costumeUrl?: string) {
 }
 
 export function instagramLink(costumeUrl?: string) {
-  // ig.me/m/HANDLE opens a direct message instead of the public profile.
-  const base = `https://ig.me/m/${INSTAGRAM_HANDLE}`
+  const { instagramHandle } = getSettings()
+  const base = `https://ig.me/m/${instagramHandle}`
   if (costumeUrl) {
     const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
     return `${base}?text=${encodeURIComponent(text)}`
