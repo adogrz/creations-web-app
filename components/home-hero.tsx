@@ -46,7 +46,7 @@ export function HomeHero() {
               className="object-cover"
             />
           </div>
-          <div className="absolute -bottom-5 -left-5 hidden rounded-full bg-primary text-primary-foreground size-24 flex flex-col items-center justify-center text-center shadow-lg sm:flex border border-primary-foreground/10 ring-8 ring-background">
+          <div className="absolute -bottom-5 -left-5 hidden rounded-full bg-primary text-primary-foreground size-24 flex-col items-center justify-center text-center shadow-lg sm:flex border border-primary-foreground/10 ring-8 ring-background">
             <p className="font-serif italic text-2xl font-bold leading-none tabular-nums">
               100+
             </p>
