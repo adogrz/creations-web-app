@@ -1,9 +1,10 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
-import { Menu, X, Sparkles } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 
@@ -29,9 +30,15 @@ export function SiteHeader() {
           className="flex items-center gap-2"
           onClick={() => setOpen(false)}
         >
-          <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-            <Sparkles className="size-4" aria-hidden="true" />
-          </span>
+          <div className="flex size-8 items-center justify-center rounded-full overflow-hidden bg-primary">
+            <Image
+              src="/creations-logo.webp"
+              alt="Creations logo"
+              width={32}
+              height={32}
+              className="object-cover size-full"
+            />
+          </div>
           <span className="font-heading text-xl font-semibold tracking-tight">
             Creations
           </span>
