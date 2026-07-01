@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Share2, Copy, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +18,11 @@ interface ShareCostumeButtonProps {
 
 export function ShareCostumeButton({ costumeName, costumeUrl }: ShareCostumeButtonProps) {
   const [copied, setCopied] = useState(false)
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
   const handleCopyLink = () => {
     navigator.clipboard.writeText(costumeUrl)
@@ -131,9 +136,9 @@ export function ShareCostumeButton({ costumeName, costumeUrl }: ShareCostumeButt
           </a>
         </DropdownMenuItem>
 
-        <DropdownMenuItem onClick={handleCopyLink}>
+        <DropdownMenuItem onClick={handleCopyLink} disabled={!mounted}>
           <div className="flex items-center gap-2 cursor-pointer">
-            {copied ? (
+            {mounted && copied ? (
               <>
                 <Check className="size-4 text-green-600" />
                 <span>¡Copiado!</span>
