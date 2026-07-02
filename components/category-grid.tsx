@@ -1,40 +1,57 @@
-import Link from 'next/link'
-import Image from 'next/image'
-import { categories, costumes } from '@/lib/data'
-import { cn } from '@/lib/utils'
+import Link from "next/link";
+import Image from "next/image";
+import prisma from "@/lib/db";
+import { cn } from "@/lib/utils";
 
 const layoutConfigs = [
-  { span: 'md:col-span-2', aspect: 'aspect-[1.8/1] sm:aspect-[2.1/1]' },
-  { span: 'md:col-span-1', aspect: 'aspect-square' },
-  { span: 'md:col-span-1', aspect: 'aspect-square' },
-  { span: 'md:col-span-1', aspect: 'aspect-square' },
-  { span: 'md:col-span-1', aspect: 'aspect-square' },
-  { span: 'md:col-span-2', aspect: 'aspect-[1.8/1] sm:aspect-[2.1/1]' },
-]
+  { span: "md:col-span-2", aspect: "aspect-[1.8/1] sm:aspect-[2.1/1]" },
+  { span: "md:col-span-1", aspect: "aspect-square" },
+  { span: "md:col-span-1", aspect: "aspect-square" },
+  { span: "md:col-span-1", aspect: "aspect-square" },
+  { span: "md:col-span-1", aspect: "aspect-square" },
+  { span: "md:col-span-2", aspect: "aspect-[1.8/1] sm:aspect-[2.1/1]" },
+];
 
-export function CategoryGrid({ className }: { className?: string }) {
+export async function CategoryGrid({ className }: { className?: string }) {
+  // Consultar categorías incluyendo el conteo de disfraces publicados
+  const categoriesWithCounts = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: {
+          costumes: {
+            where: { published: true },
+          },
+        },
+      },
+    },
+  });
+
   return (
     <div
       className={cn(
-        'grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3',
+        "grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3",
         className,
       )}
     >
-      {categories.map((category, index) => {
-        const count = costumes.filter(
-          (c) => c.categorySlug === category.slug,
-        ).length
-        const config = layoutConfigs[index % layoutConfigs.length]
+      {categoriesWithCounts.map((category, index) => {
+        const count = category._count.costumes;
+        const config = layoutConfigs[index % layoutConfigs.length];
 
         return (
           <Link
             key={category.slug}
             href={`/costumes?category=${category.slug}`}
-            className={cn('group flex flex-col', config.span)}
+            className={cn("group flex flex-col", config.span)}
           >
-            <div className={cn('relative w-full overflow-hidden rounded-[2rem] bg-muted ring-1 ring-foreground/5', config.aspect)}>
+            <div
+              className={cn(
+                "relative w-full overflow-hidden rounded-[2rem] bg-muted ring-1 ring-foreground/5",
+                config.aspect,
+              )}
+            >
               <Image
-                src={category.image || '/placeholder.svg'}
+                src={category.image || "/placeholder.svg"}
                 alt={category.name}
                 fill
                 sizes="(max-width: 640px) 100vw, 50vw"
@@ -51,12 +68,12 @@ export function CategoryGrid({ className }: { className?: string }) {
                 </p>
               </div>
               <span className="shrink-0 text-xs font-semibold text-primary tabular-nums">
-                {count} {count === 1 ? 'creation' : 'creations'}
+                {count} {count === 1 ? "creación" : "creaciones"}
               </span>
             </div>
           </Link>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

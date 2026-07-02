@@ -1,23 +1,27 @@
-import type { Metadata } from 'next'
-import { CatalogView } from '@/components/catalog-view'
-import { getCategoryBySlug } from '@/lib/data'
+import type { Metadata } from "next";
+import { CatalogView } from "@/components/catalog-view";
+import { getCategories, getCostumes } from "@/lib/queries";
 
 export const metadata: Metadata = {
-  title: 'Catálogo — Creations',
-  description: 'Explora nuestro catálogo completo de disfraces hechos a mano.',
-}
+  title: "Catálogo — Creations",
+  description: "Explora nuestro catálogo completo de disfraces hechos a mano.",
+};
 
 export default async function CostumesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>
+  searchParams: Promise<{ q?: string; category?: string }>;
 }) {
-  const params = await searchParams
-  const initialQuery = params.q ?? ''
+  const params = await searchParams;
+  const initialQuery = params.q ?? "";
+
+  const categories = await getCategories();
+  const costumes = await getCostumes({ published: true });
+
   const initialCategory =
-    params.category && getCategoryBySlug(params.category)
+    params.category && categories.some((c) => c.slug === params.category)
       ? params.category
-      : 'all'
+      : "all";
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
@@ -26,14 +30,16 @@ export default async function CostumesPage({
           El catálogo
         </h1>
         <p className="mt-3 text-lg text-muted-foreground text-pretty">
-          Cada disfraz se confecciona a mano bajo pedido. Explora para inspirarte,
-          luego escríbenos para hacer el tuyo.
+          Cada disfraz se confecciona a mano bajo pedido. Explora para
+          inspirarte, luego escríbenos para hacer el tuyo.
         </p>
       </header>
       <CatalogView
+        costumes={costumes}
+        categories={categories}
         initialQuery={initialQuery}
         initialCategory={initialCategory}
       />
     </div>
-  )
+  );
 }

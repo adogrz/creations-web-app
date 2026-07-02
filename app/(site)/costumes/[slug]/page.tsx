@@ -1,63 +1,85 @@
-import type { Metadata } from 'next'
-import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { ArrowLeft, Clock, Tag, Wallet, Users } from 'lucide-react'
-import { Badge } from '@/components/ui/badge'
-import { ImageGallery } from '@/components/image-gallery'
-import { ContactButtons } from '@/components/contact-buttons'
-import { CostumeCard } from '@/components/costume-card'
+import type { Metadata } from "next";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeft, Clock, Tag, Wallet, Users } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { ImageGallery } from "@/components/image-gallery";
+import { ContactButtons } from "@/components/contact-buttons";
+import { CostumeCard } from "@/components/costume-card";
 import {
-  costumes,
   getCostumeBySlug,
-  getCategoryName,
   getRelatedCostumes,
-} from '@/lib/data'
+  getSettings,
+} from "@/lib/queries";
+import prisma from "@/lib/db";
 
-export function generateStaticParams() {
-  return costumes.map((costume) => ({ slug: costume.slug }))
+export const dynamicParams = true;
+
+export async function generateStaticParams() {
+  const list = await prisma.costume.findMany({
+    where: { published: true },
+    select: { slug: true },
+  });
+  return list.map((costume) => ({ slug: costume.slug }));
 }
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params
-  const costume = getCostumeBySlug(slug)
-  if (!costume) return { title: 'Disfraz no encontrado — Creations' }
+  const { slug } = await params;
+  const costume = await getCostumeBySlug(slug);
+  if (!costume) return { title: "Disfraz no encontrado — Creations" };
   return {
     title: `${costume.name} — Creations`,
     description: costume.shortDescription,
-  }
+  };
 }
 
 export default async function CostumeDetailPage({
   params,
 }: {
-  params: Promise<{ slug: string }>
+  params: Promise<{ slug: string }>;
 }) {
-  const { slug } = await params
-  const costume = getCostumeBySlug(slug)
-  if (!costume) notFound()
+  const { slug } = await params;
+  const costume = await getCostumeBySlug(slug);
+  if (!costume) notFound();
 
-  const related = getRelatedCostumes(costume)
+  const [related, settings] = await Promise.all([
+    getRelatedCostumes({
+      costumeId: costume.id,
+      categoryId: costume.categoryId,
+      limit: 3,
+    }),
+    getSettings(),
+  ]);
 
   const getAudienceName = (aud: string) => {
-    if (aud === 'Kids') return 'Niños'
-    if (aud === 'Adults') return 'Adultos'
-    return 'Todas las edades'
-  }
+    if (aud === "KIDS") return "Niños";
+    if (aud === "ADULTS") return "Adultos";
+    return "Todas las edades";
+  };
+
+  const priceDisplay =
+    costume.priceMin === costume.priceMax
+      ? `$${costume.priceMin}`
+      : `$${costume.priceMin} – $${costume.priceMax}`;
 
   const details = [
-    { icon: Wallet, label: 'Rango de precios', value: costume.priceRange },
-    { icon: Clock, label: 'Tiempo de confección', value: costume.creationTime },
-    { icon: Users, label: 'Ideal para', value: getAudienceName(costume.audience) },
+    { icon: Wallet, label: "Rango de precios", value: priceDisplay },
+    { icon: Clock, label: "Tiempo de confección", value: costume.estimatedTime },
+    {
+      icon: Users,
+      label: "Ideal para",
+      value: getAudienceName(costume.audience),
+    },
     {
       icon: Tag,
-      label: 'Categoría',
-      value: getCategoryName(costume.categorySlug),
+      label: "Categoría",
+      value: costume.category?.name || "General",
     },
-  ]
+  ];
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -75,7 +97,7 @@ export default async function CostumeDetailPage({
         <div className="flex flex-col gap-6">
           <div className="flex flex-col gap-3">
             <Badge variant="secondary" className="w-fit">
-              {getCategoryName(costume.categorySlug)}
+              {costume.category?.name}
             </Badge>
             <h1 className="font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
               {costume.name}
@@ -95,15 +117,19 @@ export default async function CostumeDetailPage({
                   <d.icon className="size-4" />
                 </span>
                 <div className="min-w-0">
-                  <dt className="text-xs text-muted-foreground leading-tight">{d.label}</dt>
-                  <dd className="font-medium leading-snug warp-break-words">{d.value}</dd>
+                  <dt className="text-xs text-muted-foreground leading-tight">
+                    {d.label}
+                  </dt>
+                  <dd className="font-medium leading-snug warp-break-words">
+                    {d.value}
+                  </dd>
                 </div>
               </div>
             ))}
           </dl>
 
           <div className="flex flex-wrap gap-2">
-            {costume.tags.map((tag) => (
+            {(costume.tags || []).map((tag) => (
               <span
                 key={tag}
                 className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground"
@@ -115,15 +141,14 @@ export default async function CostumeDetailPage({
 
           <div className="rounded-3xl bg-primary/5 p-5 ring-1 ring-primary/15">
             <p className="mb-4 text-sm text-muted-foreground">
-              ¿Te encanta esta pieza? Escríbenos para ordenarla o solicitar tu propia
-              versión personalizada.
+              ¿Te encanta esta pieza? Escríbenos para ordenarla o solicitar tu
+              propia versión personalizada.
             </p>
             <ContactButtons
-              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://creations.vercel.app'}/costumes/${costume.slug}`}
+              settings={settings}
+              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? "https://creations.vercel.app"}/costumes/${costume.slug}`}
             />
           </div>
-
-
         </div>
       </div>
 
@@ -140,5 +165,5 @@ export default async function CostumeDetailPage({
         </section>
       )}
     </div>
-  )
+  );
 }

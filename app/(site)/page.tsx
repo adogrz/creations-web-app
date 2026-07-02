@@ -1,31 +1,32 @@
-import Link from 'next/link'
-import { ArrowRight, Palette, Ruler, MessageCircleHeart } from 'lucide-react'
-import { HomeHero } from '@/components/home-hero'
-import { CategoryGrid } from '@/components/category-grid'
-import { CostumeCard } from '@/components/costume-card'
-import { ContactButtons } from '@/components/contact-buttons'
-import { costumes } from '@/lib/data'
+import Link from "next/link";
+import { ArrowRight, Palette, Ruler, MessageCircleHeart } from "lucide-react";
+import { HomeHero } from "@/components/home-hero";
+import { CategoryGrid } from "@/components/category-grid";
+import { CostumeCard } from "@/components/costume-card";
+import { ContactButtons } from "@/components/contact-buttons";
+import { getFeaturedCostumes, getSettings } from "@/lib/queries";
 
 const steps = [
   {
     icon: Palette,
-    title: 'Cuéntanos tu idea',
-    text: 'Dinos el personaje, los colores y el estilo que estás imaginando.',
+    title: "Cuéntanos tu idea",
+    text: "Dinos el personaje, los colores y el estilo que estás imaginando.",
   },
   {
     icon: Ruler,
-    title: 'Diseño y medidas',
-    text: 'Esbozamos el diseño del disfraz y tomamos medidas para un ajuste ideal y cómodo.',
+    title: "Diseño y medidas",
+    text: "Esbozamos el diseño del disfraz y tomamos medidas para un ajuste ideal y cómodo.",
   },
   {
     icon: MessageCircleHeart,
-    title: 'Confección y entrega',
-    text: 'Cada pieza se cose a mano y se termina con hermosos detalles llenos de amor.',
+    title: "Confección y entrega",
+    text: "Cada pieza se cose a mano y se termina con hermosos detalles llenos de amor.",
   },
-]
+];
 
-export default function HomePage() {
-  const featured = costumes.filter((c) => c.featured).slice(0, 4)
+export default async function HomePage() {
+  const featured = await getFeaturedCostumes(4);
+  const settings = await getSettings();
 
   return (
     <div className="flex flex-col gap-10 pb-4">
@@ -115,12 +116,12 @@ export default function HomePage() {
             ¿Tienes un disfraz en mente? Hagámoslo realidad.
           </h2>
           <p className="max-w-md text-muted-foreground text-pretty text-sm">
-            Envíanos un mensaje por WhatsApp o Messenger y te ayudaremos a dar vida
-            a tu idea.
+            Envíanos un mensaje por WhatsApp o Messenger y te ayudaremos a dar
+            vida a tu idea.
           </p>
-          <ContactButtons className="w-full max-w-md" />
+          <ContactButtons settings={settings} className="w-full max-w-md" />
         </div>
       </section>
     </div>
-  )
+  );
 }

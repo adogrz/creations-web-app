@@ -2,14 +2,27 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import { categories, costumes } from "@/lib/data";
+import prisma from "@/lib/db";
 
 export const metadata: Metadata = {
   title: "Categorías — Creations",
   description: "Explora nuestras categorías de disfraces hechos a mano.",
 };
 
-export default function CategoriesPage() {
+export default async function CategoriesPage() {
+  const categoriesWithCounts = await prisma.category.findMany({
+    orderBy: { name: "asc" },
+    include: {
+      _count: {
+        select: {
+          costumes: {
+            where: { published: true },
+          },
+        },
+      },
+    },
+  });
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
       <header className="mb-8 max-w-2xl">
@@ -17,15 +30,14 @@ export default function CategoriesPage() {
           Categorías
         </h1>
         <p className="mt-3 text-lg text-muted-foreground text-pretty">
-          Desde cuentos de hadas hasta ciencia ficción, encuentra el estilo que despierte tu imaginación.
+          Desde cuentos de hadas hasta ciencia ficción, encuentra el estilo que
+          despierte tu imaginación.
         </p>
       </header>
 
       <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-        {categories.map((category) => {
-          const count = costumes.filter(
-            (c) => c.categorySlug === category.slug,
-          ).length;
+        {categoriesWithCounts.map((category) => {
+          const count = category._count.costumes;
           return (
             <Link
               key={category.slug}
