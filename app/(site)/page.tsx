@@ -28,7 +28,7 @@ export default function HomePage() {
   const featured = costumes.filter((c) => c.featured).slice(0, 4)
 
   return (
-    <div className="flex flex-col gap-28 pb-4">
+    <div className="flex flex-col gap-10 pb-4">
       <HomeHero />
 
       {/* Categories */}

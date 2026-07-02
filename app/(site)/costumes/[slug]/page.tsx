@@ -89,14 +89,14 @@ export default async function CostumeDetailPage({
             {details.map((d) => (
               <div
                 key={d.label}
-                className="flex items-center gap-3 rounded-2xl bg-secondary/50 p-4"
+                className="flex items-start gap-3 rounded-2xl bg-secondary/50 p-4"
               >
-                <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-primary ring-1 ring-foreground/10">
+                <span className="mt-0.5 flex size-9 shrink-0 items-center justify-center rounded-full bg-background text-primary ring-1 ring-foreground/10">
                   <d.icon className="size-4" />
                 </span>
                 <div className="min-w-0">
-                  <dt className="text-xs text-muted-foreground">{d.label}</dt>
-                  <dd className="truncate font-medium">{d.value}</dd>
+                  <dt className="text-xs text-muted-foreground leading-tight">{d.label}</dt>
+                  <dd className="font-medium leading-snug warp-break-words">{d.value}</dd>
                 </div>
               </div>
             ))}
@@ -118,8 +118,12 @@ export default async function CostumeDetailPage({
               ¿Te encanta esta pieza? Escríbenos para ordenarla o solicitar tu propia
               versión personalizada.
             </p>
-            <ContactButtons costumeName={costume.name} />
+            <ContactButtons
+              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://creations.vercel.app'}/costumes/${costume.slug}`}
+            />
           </div>
+
+
         </div>
       </div>
 

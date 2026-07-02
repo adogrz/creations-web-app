@@ -3,6 +3,7 @@
 import Image from 'next/image'
 import { useState } from 'react'
 import { cn } from '@/lib/utils'
+import { ShareCostumeButton } from '@/components/share-costume-button'
 
 export function ImageGallery({
   images,
@@ -25,6 +26,9 @@ export function ImageGallery({
           sizes="(max-width: 1024px) 100vw, 50vw"
           className="object-cover"
         />
+        <div className="absolute right-3 top-3">
+          <ShareCostumeButton />
+        </div>
       </div>
       {gallery.length > 1 && (
         <div className="flex gap-3">

@@ -19,7 +19,7 @@ export function SearchBar({ className }: { className?: string }) {
     <form
       onSubmit={handleSubmit}
       className={cn(
-        'flex items-center gap-2 rounded-full border border-border bg-card p-2 pl-5 shadow-sm ring-1 ring-foreground/5 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent',
+        'flex w-full items-center gap-2 rounded-full border border-border bg-card p-2 pl-4 shadow-sm ring-1 ring-foreground/5 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent sm:pl-5',
         className,
       )}
       role="search"
@@ -29,15 +29,17 @@ export function SearchBar({ className }: { className?: string }) {
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        placeholder="Buscar hada, dragón, mago…"
+        placeholder="Buscar Rumi, princesa, Spider-Man…"
         aria-label="Buscar disfraces"
-        className="min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+        className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
       />
       <button
         type="submit"
-        className="shrink-0 rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground transition-[background-color] hover:bg-primary/90"
+        aria-label="Buscar"
+        className="flex shrink-0 items-center justify-center rounded-full bg-primary p-2.5 text-sm font-semibold text-primary-foreground transition-[background-color] hover:bg-primary/90 sm:px-5 sm:py-2.5"
       >
-        Buscar
+        <Search className="size-4 sm:hidden" aria-hidden="true" />
+        <span className="hidden sm:inline">Buscar</span>
       </button>
     </form>
   )

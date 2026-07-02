@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useMemo, useState } from 'react'
-import { Search, Pencil, Trash2, PlusCircle } from 'lucide-react'
+import { Search, Pencil, Trash2, PlusCircle, Eye, EyeOff, Star } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,18 +17,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { costumes as initialCostumes, getCategoryName } from '@/lib/data'
+import { costumes as initialCostumes, categories, getCategoryName } from '@/lib/data'
 import { cn } from '@/lib/utils'
 
 export function AdminTable() {
   const [list, setList] = useState(initialCostumes)
   const [query, setQuery] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('all')
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return list
-    return list.filter((c) => c.name.toLowerCase().includes(q))
-  }, [list, query])
+    return list.filter((c) => {
+      const matchesQuery = !q || c.name.toLowerCase().includes(q)
+      const matchesCategory = categoryFilter === 'all' || c.categorySlug === categoryFilter
+      return matchesQuery && matchesCategory
+    })
+  }, [list, query, categoryFilter])
 
   function handleDelete(slug: string) {
     setList((prev) => prev.filter((c) => c.slug !== slug))
@@ -37,16 +41,29 @@ export function AdminTable() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2 rounded-full border border-border bg-background h-10 sm:h-8 pl-4 w-full sm:w-72 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent">
-          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Buscar disfraces…"
-            aria-label="Buscar disfraces"
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-          />
+        <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-2 rounded-full border border-border bg-background h-10 sm:h-8 pl-4 w-full sm:w-64 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent">
+            <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Buscar disfraces…"
+              aria-label="Buscar disfraces"
+              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            aria-label="Filtrar por categoría"
+            className="h-10 sm:h-8 rounded-full border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring w-full sm:w-auto cursor-pointer"
+          >
+            <option value="all">Todas las categorías</option>
+            {categories.map((cat) => (
+              <option key={cat.slug} value={cat.slug}>{cat.name}</option>
+            ))}
+          </select>
         </div>
         <Button
           nativeButton={false}
@@ -80,6 +97,22 @@ export function AdminTable() {
               <p className="text-xs text-muted-foreground mt-0.5">
                 {getCategoryName(costume.categorySlug)} · <span className="tabular-nums font-semibold text-primary">{costume.priceRange}</span>
               </p>
+              <div className="mt-1.5 flex items-center gap-1.5">
+                {costume.published !== false ? (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
+                    <Eye className="size-2.5" />Publicado
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                    <EyeOff className="size-2.5" />Borrador
+                  </span>
+                )}
+                {costume.featured && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
+                    <Star className="size-2.5" />Destacado
+                  </span>
+                )}
+              </div>
             </div>
             <div className="flex shrink-0 items-center gap-1.5">
               <Button
@@ -132,7 +165,8 @@ export function AdminTable() {
             <tr className="border-b border-border text-left text-muted-foreground">
               <th className="p-4 font-medium">Disfraz</th>
               <th className="p-4 font-medium">Categoría</th>
-              <th className="p-4 font-medium">Público</th>
+              <th className="p-4 font-medium">Estado</th>
+              <th className="p-4 font-medium">Destacado</th>
               <th className="p-4 font-medium">Precio</th>
               <th className="p-4 text-right font-medium">Acciones</th>
             </tr>
@@ -162,8 +196,25 @@ export function AdminTable() {
                     {getCategoryName(costume.categorySlug)}
                   </Badge>
                 </td>
-                <td className="p-4 text-muted-foreground">
-                  {costume.audience === 'Kids' ? 'Niños' : costume.audience === 'Adults' ? 'Adultos' : 'Todo público'}
+                <td className="p-4">
+                  {costume.published !== false ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
+                      <Eye className="size-3" />Publicado
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
+                      <EyeOff className="size-3" />Borrador
+                    </span>
+                  )}
+                </td>
+                <td className="p-4">
+                  {costume.featured ? (
+                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
+                      <Star className="size-3" />Sí
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
                 </td>
                 <td className="p-4 text-muted-foreground tabular-nums">
                   {costume.priceRange}

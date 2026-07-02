@@ -65,7 +65,7 @@ export function CatalogView({
 
       {/* Filter chips */}
       <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:px-0"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0"
         role="tablist"
         aria-label="Filtrar por categoría"
       >

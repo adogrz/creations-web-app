@@ -1,7 +1,7 @@
 import Link from 'next/link'
-import { Sparkles } from 'lucide-react'
-import { WhatsAppIcon, MessengerIcon } from '@/components/icons'
-import { whatsappLink, messengerLink } from '@/lib/data'
+import Image from 'next/image'
+import { WhatsAppIcon, MessengerIcon, InstagramIcon } from '@/components/icons'
+import { whatsappLink, messengerLink, instagramLink } from '@/lib/data'
 
 export function SiteFooter() {
   return (
@@ -10,9 +10,15 @@ export function SiteFooter() {
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-sm">
             <Link href="/" className="flex items-center gap-2">
-              <span className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Sparkles className="size-4" aria-hidden="true" />
-              </span>
+              <div className="flex size-8 items-center justify-center rounded-full overflow-hidden bg-primary">
+                <Image
+                  src="/creations-logo.webp"
+                  alt="Creations logo"
+                  width={32}
+                  height={32}
+                  className="object-cover size-full"
+                />
+              </div>
               <span className="font-heading text-xl font-semibold">
                 Creations
               </span>
@@ -67,6 +73,17 @@ export function SiteFooter() {
                   >
                     <MessengerIcon className="size-4 text-primary" />
                     Messenger
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href={instagramLink()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 hover:text-foreground"
+                  >
+                    <InstagramIcon className="size-4 text-primary" />
+                    Instagram
                   </a>
                 </li>
               </ul>

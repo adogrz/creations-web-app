@@ -17,7 +17,7 @@ export default async function EditCostumePage({
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
-        <h1 className="font-serif text-3xl text-foreground">Editar disfraz</h1>
+        <h1 className="font-serif text-2xl text-foreground sm:text-3xl">Editar disfraz</h1>
         <p className="mt-1 text-muted-foreground">
           Actualiza los detalles de {costume.name}.
         </p>

@@ -13,10 +13,13 @@ export type Costume = {
   shortDescription: string
   description: string
   priceRange: string
+  priceMin?: number
+  priceMax?: number
   creationTime: string
   tags: string[]
   images: string[]
   featured?: boolean
+  published?: boolean
 }
 
 export const categories: Category[] = [
@@ -196,16 +199,46 @@ export function getRelatedCostumes(costume: Costume, limit = 3) {
     .slice(0, limit)
 }
 
-const WHATSAPP_NUMBER = '15551234567'
-const MESSENGER_HANDLE = 'creationsstudio'
-
-export function whatsappLink(costumeName?: string) {
-  const text = costumeName
-    ? `¡Hola Creations! Me encantaría saber más sobre el disfraz de "${costumeName}".`
-    : `¡Hola Creations! Me encantaría conocer más sobre sus disfraces personalizados.`
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`
+function getSettings() {
+  const env = {
+    whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? '50376772999',
+    messengerHandle: process.env.NEXT_PUBLIC_MESSENGER_HANDLE ?? 'creaciones1.sv',
+    instagramHandle: process.env.NEXT_PUBLIC_INSTAGRAM_HANDLE ?? 'creations.sv_',
+  }
+  if (typeof window === 'undefined') return env
+  try {
+    const raw = localStorage.getItem('creations_settings')
+    if (!raw) return env
+    return { ...env, ...JSON.parse(raw) }
+  } catch {
+    return env
+  }
 }
 
-export function messengerLink() {
-  return `https://m.me/${MESSENGER_HANDLE}`
+export function whatsappLink(costumeUrl?: string) {
+  const { whatsappNumber } = getSettings()
+  const text = costumeUrl
+    ? `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
+    : `¡Hola Creations! Me encantaría conocer más sobre sus disfraces personalizados.`
+  return `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`
+}
+
+export function messengerLink(costumeUrl?: string) {
+  const { messengerHandle } = getSettings()
+  const base = `https://www.facebook.com/messages/t/${messengerHandle}`
+  if (costumeUrl) {
+    const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
+    return `${base}?text=${encodeURIComponent(text)}`
+  }
+  return base
+}
+
+export function instagramLink(costumeUrl?: string) {
+  const { instagramHandle } = getSettings()
+  const base = `https://ig.me/m/${instagramHandle}`
+  if (costumeUrl) {
+    const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
+    return `${base}?text=${encodeURIComponent(text)}`
+  }
+  return base
 }
