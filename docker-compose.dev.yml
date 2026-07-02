@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: creations-postgres-dev
+    environment:
+      POSTGRES_USER: creations
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: creations
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+volumes:
+  postgres_dev_data:
+    name: creations_postgres_dev_data

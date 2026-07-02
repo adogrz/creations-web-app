@@ -2,6 +2,7 @@ import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
+import { ArrowLeft } from 'lucide-react'
 import { AdminNav } from '@/components/admin/admin-nav'
 
 export const metadata: Metadata = {
@@ -27,6 +28,13 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               />
             </div>
             <span className="font-heading text-base font-semibold">Estudio</span>
+          </Link>
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color] border border-border"
+          >
+            <ArrowLeft className="size-3.5" aria-hidden="true" />
+            Volver al sitio
           </Link>
         </header>
         <div className="flex-1 p-4 pb-28 sm:p-6 md:pb-6">{children}</div>

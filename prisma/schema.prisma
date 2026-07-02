@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enum ─────────────────────────────────────────────────
+enum Audience {
+  KIDS
+  ADULTS
+  ALL
+}
+
+// ─── Category ─────────────────────────────────────────────
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  image       String?
+  imageKey    String?
+  costumes    Costume[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+// ─── Costume ──────────────────────────────────────────────
+model Costume {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  shortDescription String   @db.Text
+  description      String   @db.Text
+  priceMin         Int
+  priceMax         Int
+  estimatedTime    String
+  audience         Audience @default(ALL)
+  tags             String[] @default([])
+  published        Boolean  @default(true)
+  featured         Boolean  @default(false)
+  categoryId       String
+  category         Category @relation(fields: [categoryId], references: [id])
+  images           Image[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([categoryId])
+  @@index([published])
+  @@map("costumes")
+}
+
+// ─── Image ────────────────────────────────────────────────
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  key       String
+  alt       String   @default("")
+  order     Int      @default(0)
+  costumeId String
+  costume   Costume  @relation(fields: [costumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([costumeId])
+  @@map("images")
+}
+
+// ─── Settings ─────────────────────────────────────────────
+model Settings {
+  id              String   @id @default("singleton")
+  whatsappNumber  String
+  messengerHandle String
+  instagramHandle String?
+  updatedAt       DateTime @updatedAt
+
+  @@map("settings")
+}

@@ -1,22 +1,22 @@
-import { Shirt, LayoutGrid, Star, Sparkles } from 'lucide-react'
-import { AdminTable } from '@/components/admin/admin-table'
-import { categories, costumes } from '@/lib/data'
+import { Shirt, LayoutGrid, Star, Sparkles } from "lucide-react";
+import { AdminTable } from "@/components/admin/admin-table";
+import { categories, costumes } from "@/lib/data";
 
 export default function AdminDashboardPage() {
   const stats = [
-    { icon: Shirt, label: 'Total disfraces', value: costumes.length },
-    { icon: LayoutGrid, label: 'Categorías', value: categories.length },
+    { icon: Shirt, label: "Total disfraces", value: costumes.length },
+    { icon: LayoutGrid, label: "Categorías", value: categories.length },
     {
       icon: Star,
-      label: 'Destacados',
+      label: "Destacados",
       value: costumes.filter((c) => c.featured).length,
     },
     {
       icon: Sparkles,
-      label: 'Para niños',
-      value: costumes.filter((c) => c.audience !== 'Adults').length,
+      label: "Para niños",
+      value: costumes.filter((c) => c.audience !== "Adults").length,
     },
-  ]
+  ];
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6">
@@ -25,7 +25,7 @@ export default function AdminDashboardPage() {
           Panel de control
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Administra tu catálogo de disfraces artesanales.
+          Administra tu catálogo de disfraces.
         </p>
       </div>
 
@@ -42,16 +42,20 @@ export default function AdminDashboardPage() {
               <p className="font-heading text-xl font-semibold leading-none tabular-nums">
                 {stat.value}
               </p>
-              <p className="text-xs text-muted-foreground mt-1 truncate">{stat.label}</p>
+              <p className="text-xs text-muted-foreground mt-1 truncate">
+                {stat.label}
+              </p>
             </div>
           </div>
         ))}
       </div>
 
       <div>
-        <h2 className="mb-4 font-heading text-lg font-medium">Todos los disfraces</h2>
+        <h2 className="mb-4 font-heading text-lg font-medium">
+          Todos los disfraces
+        </h2>
         <AdminTable />
       </div>
     </div>
-  )
+  );
 }

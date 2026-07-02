@@ -3,9 +3,8 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, LogOut, Settings } from 'lucide-react'
+import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, Settings } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { logoutAction } from '@/lib/admin-auth'
 
 const items = [
   { href: '/admin', label: 'Panel', icon: LayoutGrid, exact: true },
@@ -17,8 +16,19 @@ const items = [
 
 export function AdminNav() {
   const pathname = usePathname()
-  const isActive = (href: string, exact: boolean) =>
-    exact ? pathname === href : pathname.startsWith(href)
+  const isActive = (href: string, exact: boolean) => {
+    const matches = exact ? pathname === href : pathname.startsWith(href)
+    if (!matches) return false
+
+    // Check if there is another item that also matches and has a longer href
+    const hasBetterMatch = items.some((item) => {
+      if (item.href === href) return false
+      const itemMatches = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+      return itemMatches && item.href.length > href.length
+    })
+
+    return !hasBetterMatch
+  }
 
   return (
     <>
@@ -63,15 +73,6 @@ export function AdminNav() {
             <ArrowLeft className="size-4" aria-hidden="true" />
             Volver al sitio
           </Link>
-          <form action={logoutAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color]"
-            >
-              <LogOut className="size-4" aria-hidden="true" />
-              Cerrar sesión
-            </button>
-          </form>
         </div>
       </aside>
 
@@ -93,22 +94,7 @@ export function AdminNav() {
               {item.label}
             </Link>
           ))}
-          <Link
-            href="/"
-            className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground"
-          >
-            <ArrowLeft className="size-5" aria-hidden="true" />
-            Sitio
-          </Link>
-          <form action={logoutAction} className="flex flex-1">
-            <button
-              type="submit"
-              className="flex flex-1 flex-col items-center gap-1 py-2.5 text-xs font-medium text-muted-foreground"
-            >
-              <LogOut className="size-5" aria-hidden="true" />
-              Salir
-            </button>
-          </form>
+
         </div>
       </nav>
     </>
