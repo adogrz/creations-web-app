@@ -64,16 +64,7 @@ export function AdminNav() {
             </Link>
           ))}
         </nav>
-
-        <div className="mt-auto flex flex-col gap-1">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color]"
-          >
-            <ArrowLeft className="size-4" aria-hidden="true" />
-            Volver al sitio
-          </Link>
-        </div>
+        
       </aside>
 
       {/* Mobile bottom nav — includes all items + back + logout */}
