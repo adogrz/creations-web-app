@@ -1,8 +1,8 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
-import { UploadCloud, X, Check, Star, Eye, EyeOff } from 'lucide-react'
+import { useRef, useState, useEffect, useTransition } from 'react'
+import { UploadCloud, X, Star, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -15,60 +15,228 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { categories, type Costume } from '@/lib/data'
+import { createCostumeAction, updateCostumeAction } from '@/app/admin/actions/costume-actions'
+import { uploadImageAction, deleteImageAction } from '@/app/admin/actions/upload-actions'
+import { toast } from 'sonner'
+
+function slugify(text: string) {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]/g, '')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+type FormImage = {
+  id?: string
+  url: string
+  key: string
+  alt?: string
+}
+
+type FormCostume = {
+  id: string
+  name: string
+  slug: string
+  categoryId: string
+  categorySlug: string
+  audience: string
+  shortDescription: string
+  description: string
+  priceMin: number
+  priceMax: number
+  priceRange: string
+  creationTime: string
+  tags: string[]
+  images: FormImage[]
+  featured: boolean
+  published: boolean
+}
+
+type CategoryItem = {
+  id: string
+  name: string
+  slug: string
+}
 
 type AdminFormProps = {
-  costume?: Costume
+  costume?: FormCostume
+  categories: CategoryItem[]
 }
 
-const audiences = ['Kids', 'Adults', 'All ages']
-
-/** Parse "$120 – $180" into [120, 180] */
-function parsePriceRange(range?: string): [string, string] {
-  if (!range) return ['', '']
-  const numbers = range.match(/[\d.]+/g)
-  if (!numbers || numbers.length < 2) return [numbers?.[0] ?? '', '']
-  return [numbers[0], numbers[1]]
+type GalleryItem = {
+  id?: string
+  url: string
+  key?: string
+  file?: File
+  isDeleted?: boolean
 }
 
-export function AdminForm({ costume }: AdminFormProps) {
+export function AdminForm({ costume, categories }: AdminFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [category, setCategory] = useState(costume?.categorySlug ?? '')
-  const [audience, setAudience] = useState(costume?.audience ?? '')
-  const [previews, setPreviews] = useState<string[]>(costume?.images ?? [])
-  const [saved, setSaved] = useState(false)
-  const [featured, setFeatured] = useState(costume?.featured ?? false)
+  
+  const [categoryId, setCategoryId] = useState(costume?.categoryId ?? '')
+  const [audience, setAudience] = useState(
+    costume?.audience === 'Kids' ? 'KIDS' : costume?.audience === 'Adults' ? 'ADULTS' : 'ALL'
+  )
   const [published, setPublished] = useState(costume?.published ?? true)
+  const [featured, setFeatured] = useState(costume?.featured ?? false)
 
-  const [priceMin, setPriceMin] = useState(() => parsePriceRange(costume?.priceRange)[0])
-  const [priceMax, setPriceMax] = useState(() => parsePriceRange(costume?.priceRange)[1])
+  const [priceMin, setPriceMin] = useState(costume?.priceMin ? String(costume.priceMin) : '')
+  const [priceMax, setPriceMax] = useState(costume?.priceMax ? String(costume.priceMax) : '')
+  
+  const [isPending, startTransition] = useTransition()
+
+  // Galería unificada para manejar imágenes de base de datos y archivos locales pendientes
+  const [gallery, setGallery] = useState<GalleryItem[]>(() => 
+    costume?.images.map(img => ({ id: img.id, url: img.url, key: img.key })) ?? []
+  )
+
+  // Sincronizar galería si cambia el disfraz
+  useEffect(() => {
+    if (costume) {
+      setGallery(costume.images.map(img => ({ id: img.id, url: img.url, key: img.key })))
+    }
+  }, [costume])
+
+  // Mostrar solo las imágenes que no han sido marcadas para borrar
+  const visibleImages = gallery.filter(item => !item.isDeleted)
 
   function handleFiles(files: FileList | null) {
     if (!files) return
-    const urls = Array.from(files).map((file) => URL.createObjectURL(file))
-    setPreviews((prev) => [...prev, ...urls])
+    const newItems = Array.from(files).map((file) => ({
+      url: URL.createObjectURL(file),
+      file
+    }))
+    setGallery((prev) => [...prev, ...newItems])
   }
 
-  function removePreview(index: number) {
-    setPreviews((prev) => prev.filter((_, i) => i !== index))
+  function removePreview(url: string) {
+    const index = gallery.findIndex(item => item.url === url)
+    if (index === -1) return
+
+    const updated = [...gallery]
+    const itemToRemove = updated[index]
+    
+    // Marcar como eliminada
+    updated[index] = { ...itemToRemove, isDeleted: true }
+    setGallery(updated)
+
+    // Mostrar toast con opción Deshacer (Undo)
+    toast('Imagen quitada del disfraz', {
+      action: {
+        label: 'Deshacer',
+        onClick: () => {
+          const restored = [...updated]
+          restored[index] = { ...itemToRemove, isDeleted: false }
+          setGallery(restored)
+        }
+      }
+    })
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    // Mock save — no backend yet.
-    setSaved(true)
-    setTimeout(() => router.push('/admin'), 900)
+    // Capturar el FormData sincronamente ANTES de que startTransition deshabilite los inputs
+    const submissionData = new FormData(e.currentTarget)
+
+    if (visibleImages.length === 0) {
+      toast.error('Debes añadir al menos una imagen para el disfraz')
+      return
+    }
+
+    startTransition(async () => {
+      // 1. Subir nuevos archivos locales a R2 en paralelo
+      const newItems = gallery.filter(item => item.file && !item.isDeleted)
+      const uploadedList: { url: string; key: string }[] = []
+      const uploadedKeys: string[] = []
+
+      // Obtener el ID del disfraz (existente o generado para la ruta en R2)
+      const costumeId = costume?.id || crypto.randomUUID()
+
+      const uploadPromises = newItems.map(async (item) => {
+        const uniqueId = crypto.randomUUID()
+        const customKey = `${categoryId}/${costumeId}/${uniqueId}.webp`
+
+        const formData = new FormData()
+        formData.append('file', item.file!)
+        formData.append('key', customKey)
+
+        const res = await uploadImageAction(formData)
+        if (res.success && res.url && res.key) {
+          return { url: res.url, key: res.key }
+        } else {
+          throw new Error(res.error || 'Error al subir una de las imágenes')
+        }
+      })
+
+      try {
+        const results = await Promise.all(uploadPromises)
+        for (const r of results) {
+          uploadedList.push(r)
+          uploadedKeys.push(r.key)
+        }
+      } catch (err: any) {
+        // Limpieza de emergencia de las imágenes subidas si alguna falla
+        for (const key of uploadedKeys) {
+          await deleteImageAction(key)
+        }
+        toast.error(err.message || 'Error al subir las imágenes a R2')
+        return
+      }
+
+      // 2. Eliminar de R2 los archivos que fueron borrados (solo existentes de BD)
+      const deletedItems = gallery.filter(item => item.isDeleted && item.key)
+      for (const item of deletedItems) {
+        await deleteImageAction(item.key!)
+      }
+
+      // 3. Crear lista final de imágenes
+      const finalImages = [
+        ...gallery.filter(item => item.key && !item.isDeleted).map(item => ({
+          id: item.id,
+          url: item.url,
+          key: item.key!
+        })),
+        ...uploadedList
+      ]
+
+      // 4. Agregar campos adicionales al FormData pre-capturado
+      submissionData.set('id', costumeId)
+      submissionData.set('categoryId', categoryId)
+      submissionData.set('audience', audience)
+      submissionData.set('published', String(published))
+      submissionData.set('featured', String(featured))
+      submissionData.set('images', JSON.stringify(finalImages))
+
+      // 5. Enviar a la Server Action correspondiente
+      const res = costume
+        ? await updateCostumeAction(submissionData)
+        : await createCostumeAction(submissionData)
+
+      if (res.success) {
+        toast.success(costume ? 'Disfraz actualizado exitosamente' : 'Disfraz creado exitosamente')
+        router.push('/admin')
+        router.refresh()
+      } else {
+        // Si falló el guardado en base de datos, limpiamos las subidas nuevas para evitar archivos huérfanos
+        for (const key of uploadedKeys) {
+          await deleteImageAction(key)
+        }
+        toast.error(res.error || 'Error al guardar los datos del disfraz')
+      }
+    })
   }
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-      {/* ── Desktop: 3-col grid. Mobile: single column, reordered via order-* ── */}
       <div className="grid gap-5 lg:grid-cols-3">
-
-        {/* ── Col 1-2: main fields (always rendered first in DOM) ── */}
+        {/* Col 1-2: campos principales */}
         <div className="flex flex-col gap-5 lg:col-span-2">
-
           {/* Details card */}
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <h2 className="mb-4 font-heading text-lg font-medium">Detalles</h2>
@@ -81,20 +249,25 @@ export function AdminForm({ costume }: AdminFormProps) {
                   defaultValue={costume?.name}
                   placeholder="Ej. Hada Encantada"
                   required
+                  disabled={isPending}
                 />
               </div>
 
-              {/* Selects — single column on mobile, 2 cols on sm+ */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="category-select">Categoría</Label>
-                  <Select value={category} onValueChange={(v) => setCategory(v)}>
+                  <Select
+                    value={categoryId}
+                    onValueChange={setCategoryId}
+                    disabled={isPending}
+                    items={categories.map((c) => ({ label: c.name, value: c.id }))}
+                  >
                     <SelectTrigger id="category-select" className="w-full">
-                      <SelectValue placeholder="Categoría" />
+                      <SelectValue placeholder="Selecciona categoría" />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((c) => (
-                        <SelectItem key={c.slug} value={c.slug}>
+                        <SelectItem key={c.id} value={c.id}>
                           {c.name}
                         </SelectItem>
                       ))}
@@ -103,28 +276,37 @@ export function AdminForm({ costume }: AdminFormProps) {
                 </div>
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="audience-select">Público</Label>
-                  <Select value={audience} onValueChange={(v) => setAudience(v)}>
+                  <Select
+                    value={audience}
+                    onValueChange={setAudience}
+                    disabled={isPending}
+                    items={[
+                      { label: 'Niños', value: 'KIDS' },
+                      { label: 'Adultos', value: 'ADULTS' },
+                      { label: 'Todo público', value: 'ALL' },
+                    ]}
+                  >
                     <SelectTrigger id="audience-select" className="w-full">
                       <SelectValue placeholder="Público" />
                     </SelectTrigger>
                     <SelectContent>
-                      {audiences.map((a) => (
-                        <SelectItem key={a} value={a}>
-                          {a === 'Kids' ? 'Niños' : a === 'Adults' ? 'Adultos' : 'Todo público'}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="KIDS">Niños</SelectItem>
+                      <SelectItem value="ADULTS">Adultos</SelectItem>
+                      <SelectItem value="ALL">Todo público</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="short">Descripción corta</Label>
+                <Label htmlFor="shortDescription">Descripción corta</Label>
                 <Input
-                  id="short"
-                  name="short"
+                  id="shortDescription"
+                  name="shortDescription"
                   defaultValue={costume?.shortDescription}
                   placeholder="Un resumen de una línea mostrado en las tarjetas"
+                  required
+                  disabled={isPending}
                 />
               </div>
 
@@ -136,6 +318,8 @@ export function AdminForm({ costume }: AdminFormProps) {
                   rows={5}
                   defaultValue={costume?.description}
                   placeholder="Describe los materiales, detalles y confección…"
+                  required
+                  disabled={isPending}
                 />
               </div>
             </div>
@@ -145,8 +329,6 @@ export function AdminForm({ costume }: AdminFormProps) {
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <h2 className="mb-4 font-heading text-lg font-medium">Precios y etiquetas</h2>
             <div className="flex flex-col gap-4">
-
-              {/* Price range — two number fields */}
               <div className="flex flex-col gap-2">
                 <Label>Rango de precios</Label>
                 <div className="flex items-center gap-2">
@@ -160,6 +342,8 @@ export function AdminForm({ costume }: AdminFormProps) {
                       value={priceMin}
                       onChange={(e) => setPriceMin(e.target.value)}
                       placeholder="120"
+                      required
+                      disabled={isPending}
                       aria-label="Precio mínimo en USD"
                       className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
                     />
@@ -175,6 +359,8 @@ export function AdminForm({ costume }: AdminFormProps) {
                       value={priceMax}
                       onChange={(e) => setPriceMax(e.target.value)}
                       placeholder="180"
+                      required
+                      disabled={isPending}
                       aria-label="Precio máximo en USD"
                       className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
                     />
@@ -184,12 +370,14 @@ export function AdminForm({ costume }: AdminFormProps) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="time">Tiempo estimado de confección</Label>
+                <Label htmlFor="estimatedTime">Tiempo estimado de confección</Label>
                 <Input
-                  id="time"
-                  name="time"
+                  id="estimatedTime"
+                  name="estimatedTime"
                   defaultValue={costume?.creationTime}
                   placeholder="2 – 3 semanas"
+                  required
+                  disabled={isPending}
                 />
               </div>
 
@@ -200,6 +388,7 @@ export function AdminForm({ costume }: AdminFormProps) {
                   name="tags"
                   defaultValue={costume?.tags.join(', ')}
                   placeholder="tul, alas, hecho a mano"
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">Separa las etiquetas con comas.</p>
               </div>
@@ -210,8 +399,6 @@ export function AdminForm({ costume }: AdminFormProps) {
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <h2 className="mb-4 font-heading text-lg font-medium">Visibilidad</h2>
             <div className="flex flex-col gap-4">
-
-              {/* Published toggle */}
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <div className="flex items-center gap-2">
@@ -233,11 +420,11 @@ export function AdminForm({ costume }: AdminFormProps) {
                 <Switch
                   checked={published}
                   onCheckedChange={setPublished}
+                  disabled={isPending}
                   aria-label="Alternar visibilidad del disfraz"
                 />
               </div>
 
-              {/* Featured toggle */}
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <div className="flex items-center gap-2">
@@ -258,24 +445,24 @@ export function AdminForm({ costume }: AdminFormProps) {
                 <Switch
                   checked={featured}
                   onCheckedChange={setFeatured}
+                  disabled={isPending}
                   aria-label="Alternar si el disfraz es destacado"
                 />
               </div>
-
             </div>
           </div>
         </div>
 
-        {/* ── Col 3: image upload + actions ── */}
+        {/* Col 3: subir imágenes y acciones */}
         <div className="flex flex-col gap-5">
-          {/* Images */}
           <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
             <h2 className="mb-4 font-heading text-lg font-medium">Imágenes</h2>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={isPending}
               aria-label="Subir imágenes"
-              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UploadCloud className="size-5" aria-hidden="true" />
@@ -293,24 +480,26 @@ export function AdminForm({ costume }: AdminFormProps) {
               aria-label="Input de subir imágenes oculto"
               className="hidden"
               onChange={(e) => handleFiles(e.target.files)}
+              disabled={isPending}
             />
 
-            {previews.length > 0 && (
+            {visibleImages.length > 0 && (
               <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-2">
-                {previews.map((src, i) => (
+                {visibleImages.map((img, i) => (
                   <div
-                    key={`${src}-${i}`}
+                    key={`${img.url}-${i}`}
                     className="group relative aspect-square overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
-                      src={src || '/placeholder.svg'}
+                      src={img.url || '/placeholder.svg'}
                       alt={`Imagen subida ${i + 1}`}
                       className="size-full object-cover"
                     />
                     <button
                       type="button"
-                      onClick={() => removePreview(i)}
+                      onClick={() => removePreview(img.url)}
+                      disabled={isPending}
                       aria-label={`Eliminar imagen ${i + 1}`}
                       className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-all sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
                     >
@@ -324,10 +513,10 @@ export function AdminForm({ costume }: AdminFormProps) {
 
           {/* Actions */}
           <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <Button type="submit" size="lg" className="w-full rounded-full">
-              {saved ? (
+            <Button type="submit" size="lg" className="w-full rounded-full" disabled={isPending}>
+              {isPending ? (
                 <>
-                  <Check /> Guardado
+                  <Loader2 className="size-4 animate-spin mr-2" /> Guardando...
                 </>
               ) : costume ? (
                 'Guardar cambios'
@@ -339,13 +528,11 @@ export function AdminForm({ costume }: AdminFormProps) {
               type="button"
               variant="ghost"
               className="w-full rounded-full"
+              disabled={isPending}
               onClick={() => router.push('/admin')}
             >
               Cancelar
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Este es un formulario de demostración — los cambios no se guardan aún.
-            </p>
           </div>
         </div>
       </div>

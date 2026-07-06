@@ -1,20 +1,54 @@
 import { Shirt, LayoutGrid, Star, Sparkles } from "lucide-react";
 import { AdminTable } from "@/components/admin/admin-table";
-import { categories, costumes } from "@/lib/data";
+import prisma from "@/lib/db";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const costumes = await prisma.costume.findMany({
+    include: {
+      images: {
+        orderBy: { order: "asc" }
+      },
+      category: true
+    },
+    orderBy: { createdAt: "desc" }
+  });
+
+  const categories = await prisma.category.findMany({
+    orderBy: { name: "asc" }
+  });
+
+  // Mapear disfraces al formato esperado por el componente
+  const mappedCostumes = costumes.map((c) => ({
+    id: c.id,
+    name: c.name,
+    slug: c.slug,
+    categorySlug: c.category.slug,
+    categoryName: c.category.name,
+    audience: c.audience === 'KIDS' ? 'Kids' : c.audience === 'ADULTS' ? 'Adults' : 'All ages',
+    shortDescription: c.shortDescription,
+    priceMin: c.priceMin,
+    priceMax: c.priceMax,
+    priceRange: c.priceMin === c.priceMax ? `$${c.priceMin}` : `$${c.priceMin} – $${c.priceMax}`,
+    creationTime: c.estimatedTime,
+    tags: c.tags,
+    images: c.images.map((img) => img.url),
+    imageKeys: c.images.map((img) => img.key),
+    featured: c.featured,
+    published: c.published,
+  }));
+
   const stats = [
     { icon: Shirt, label: "Total disfraces", value: costumes.length },
     { icon: LayoutGrid, label: "Categorías", value: categories.length },
     {
       icon: Star,
       label: "Destacados",
-      value: costumes.filter((c) => c.featured).length,
+      value: costumes.filter((c) => c.featured && c.published).length,
     },
     {
       icon: Sparkles,
       label: "Para niños",
-      value: costumes.filter((c) => c.audience !== "Adults").length,
+      value: costumes.filter((c) => c.audience !== "ADULTS").length,
     },
   ];
 
@@ -54,7 +88,7 @@ export default function AdminDashboardPage() {
         <h2 className="mb-4 font-heading text-lg font-medium">
           Todos los disfraces
         </h2>
-        <AdminTable />
+        <AdminTable initialCostumes={mappedCostumes} initialCategories={categories} />
       </div>
     </div>
   );

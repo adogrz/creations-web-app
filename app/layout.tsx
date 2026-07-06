@@ -30,6 +30,8 @@ export const viewport: Viewport = {
   themeColor: '#fdf6f0',
 }
 
+import { Toaster } from '@/components/ui/sonner'
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -43,6 +45,7 @@ export default function RootLayout({
     >
       <body className="font-sans antialiased">
         {children}
+        <Toaster />
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>

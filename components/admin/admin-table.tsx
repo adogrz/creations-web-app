@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
-import { useMemo, useState } from 'react'
-import { Search, Pencil, Trash2, PlusCircle, Eye, EyeOff, Star } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useMemo, useState, useEffect, useTransition } from 'react'
+import { Search, Pencil, Trash2, PlusCircle, Eye, EyeOff, Star, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -17,13 +18,51 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { costumes as initialCostumes, categories, getCategoryName } from '@/lib/data'
 import { cn } from '@/lib/utils'
+import { deleteCostumeAction } from '@/app/admin/actions/costume-actions'
+import { toast } from 'sonner'
 
-export function AdminTable() {
+type CostumeItem = {
+  id: string
+  name: string
+  slug: string
+  categorySlug: string
+  categoryName: string
+  audience: string
+  shortDescription: string
+  priceMin: number
+  priceMax: number
+  priceRange: string
+  creationTime: string
+  tags: string[]
+  images: string[]
+  imageKeys: string[]
+  featured: boolean
+  published: boolean
+}
+
+type CategoryItem = {
+  id: string
+  name: string
+  slug: string
+}
+
+export function AdminTable({
+  initialCostumes,
+  initialCategories,
+}: {
+  initialCostumes: CostumeItem[]
+  initialCategories: CategoryItem[]
+}) {
+  const router = useRouter()
   const [list, setList] = useState(initialCostumes)
   const [query, setQuery] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    setList(initialCostumes)
+  }, [initialCostumes])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -34,8 +73,16 @@ export function AdminTable() {
     })
   }, [list, query, categoryFilter])
 
-  function handleDelete(slug: string) {
-    setList((prev) => prev.filter((c) => c.slug !== slug))
+  async function handleDelete(id: string) {
+    startTransition(async () => {
+      const res = await deleteCostumeAction(id)
+      if (res.success) {
+        toast.success('Disfraz eliminado exitosamente')
+        router.refresh()
+      } else {
+        toast.error(res.error || 'Error al eliminar el disfraz')
+      }
+    })
   }
 
   return (
@@ -60,7 +107,7 @@ export function AdminTable() {
             className="h-10 sm:h-8 rounded-full border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring w-full sm:w-auto cursor-pointer"
           >
             <option value="all">Todas las categorías</option>
-            {categories.map((cat) => (
+            {initialCategories.map((cat) => (
               <option key={cat.slug} value={cat.slug}>{cat.name}</option>
             ))}
           </select>
@@ -80,7 +127,7 @@ export function AdminTable() {
       <div className="flex flex-col gap-2.5 sm:hidden">
         {filtered.map((costume) => (
           <div
-            key={costume.slug}
+            key={costume.id}
             className="flex items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-foreground/5 shadow-xs"
           >
             <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
@@ -95,10 +142,10 @@ export function AdminTable() {
             <div className="min-w-0 flex-1">
               <p className="truncate font-medium text-sm leading-snug">{costume.name}</p>
               <p className="text-xs text-muted-foreground mt-0.5">
-                {getCategoryName(costume.categorySlug)} · <span className="tabular-nums font-semibold text-primary">{costume.priceRange}</span>
+                {costume.categoryName} · <span className="tabular-nums font-semibold text-primary">{costume.priceRange}</span>
               </p>
               <div className="mt-1.5 flex items-center gap-1.5">
-                {costume.published !== false ? (
+                {costume.published ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
                     <Eye className="size-2.5" />Publicado
                   </span>
@@ -122,6 +169,7 @@ export function AdminTable() {
                 nativeButton={false}
                 render={<Link href={`/admin/costumes/${costume.slug}/edit`} />}
                 aria-label={`Editar ${costume.name}`}
+                disabled={isPending}
               >
                 <Pencil aria-hidden="true" className="size-4" />
               </Button>
@@ -133,6 +181,7 @@ export function AdminTable() {
                       variant="destructive"
                       className="rounded-full size-10 justify-center p-0"
                       aria-label={`Eliminar ${costume.name}`}
+                      disabled={isPending}
                     >
                       <Trash2 aria-hidden="true" className="size-4" />
                     </Button>
@@ -147,7 +196,7 @@ export function AdminTable() {
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(costume.slug)} variant="destructive">
+                    <AlertDialogAction onClick={() => handleDelete(costume.id)} variant="destructive">
                       Eliminar
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -174,7 +223,7 @@ export function AdminTable() {
           <tbody>
             {filtered.map((costume) => (
               <tr
-                key={costume.slug}
+                key={costume.id}
                 className="border-b border-border last:border-0"
               >
                 <td className="p-4">
@@ -193,11 +242,11 @@ export function AdminTable() {
                 </td>
                 <td className="p-4">
                   <Badge variant="secondary">
-                    {getCategoryName(costume.categorySlug)}
+                    {costume.categoryName}
                   </Badge>
                 </td>
                 <td className="p-4">
-                  {costume.published !== false ? (
+                  {costume.published ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
                       <Eye className="size-3" />Publicado
                     </span>
@@ -227,6 +276,7 @@ export function AdminTable() {
                       aria-label={`Editar ${costume.name}`}
                       nativeButton={false}
                       render={<Link href={`/admin/costumes/${costume.slug}/edit`} />}
+                      disabled={isPending}
                     >
                       <Pencil aria-hidden="true" />
                     </Button>
@@ -237,6 +287,7 @@ export function AdminTable() {
                             size="icon-sm"
                             variant="destructive"
                             aria-label={`Eliminar ${costume.name}`}
+                            disabled={isPending}
                           >
                             <Trash2 aria-hidden="true" />
                           </Button>
@@ -251,7 +302,7 @@ export function AdminTable() {
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(costume.slug)} variant="destructive">
+                          <AlertDialogAction onClick={() => handleDelete(costume.id)} variant="destructive">
                             Eliminar
                           </AlertDialogAction>
                         </AlertDialogFooter>

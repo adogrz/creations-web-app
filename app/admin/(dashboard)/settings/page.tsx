@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
 import { AdminSettingsForm } from '@/components/admin/admin-settings-form'
+import { getSettings } from '@/lib/queries'
 
 export const metadata: Metadata = {
   title: 'Configuración — Estudio Creations',
 }
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+  const settings = await getSettings()
+
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
       <div>
@@ -16,7 +19,7 @@ export default function AdminSettingsPage() {
           Gestiona los datos de contacto que se usan en el sitio.
         </p>
       </div>
-      <AdminSettingsForm />
+      <AdminSettingsForm initialSettings={settings} />
     </div>
   )
 }

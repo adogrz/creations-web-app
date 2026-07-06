@@ -225,20 +225,18 @@ export function whatsappLink(costumeUrl?: string) {
 
 export function messengerLink(costumeUrl?: string) {
   const { messengerHandle } = getSettings()
-  const base = `https://www.facebook.com/messages/t/${messengerHandle}`
   if (costumeUrl) {
     const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
-    return `${base}?text=${encodeURIComponent(text)}`
+    return `https://www.facebook.com/messages/t/${messengerHandle}?text=${encodeURIComponent(text)}`
   }
-  return base
+  return `https://www.facebook.com/${messengerHandle}`
 }
 
 export function instagramLink(costumeUrl?: string) {
   const { instagramHandle } = getSettings()
-  const base = `https://ig.me/m/${instagramHandle}`
   if (costumeUrl) {
     const text = `¡Hola Creations! Me encantaría saber más sobre este disfraz: ${costumeUrl}`
-    return `${base}?text=${encodeURIComponent(text)}`
+    return `https://ig.me/m/${instagramHandle}?text=${encodeURIComponent(text)}`
   }
-  return base
+  return `https://www.instagram.com/${instagramHandle}/`
 }

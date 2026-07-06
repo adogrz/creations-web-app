@@ -1,6 +1,12 @@
-import { notFound } from "next/navigation"
-import { AdminForm } from "@/components/admin/admin-form"
-import { getCostumeBySlug } from "@/lib/data"
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { AdminForm } from '@/components/admin/admin-form'
+import { getCostumeBySlug } from '@/lib/queries'
+import prisma from '@/lib/db'
+
+export const metadata: Metadata = {
+  title: 'Editar disfraz — Estudio Creations',
+}
 
 export default async function EditCostumePage({
   params,
@@ -8,10 +14,41 @@ export default async function EditCostumePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const costume = getCostumeBySlug(slug)
+  
+  const [costume, categories] = await Promise.all([
+    getCostumeBySlug(slug),
+    prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    }),
+  ])
 
   if (!costume) {
     notFound()
+  }
+
+  // Mapear al formato del formulario
+  const mappedCostume = {
+    id: costume.id,
+    name: costume.name,
+    slug: costume.slug,
+    categoryId: costume.categoryId,
+    categorySlug: costume.category?.slug || '',
+    audience: costume.audience === 'KIDS' ? 'Kids' : costume.audience === 'ADULTS' ? 'Adults' : 'All ages',
+    shortDescription: costume.shortDescription,
+    description: costume.description,
+    priceMin: costume.priceMin,
+    priceMax: costume.priceMax,
+    priceRange: costume.priceMin === costume.priceMax ? `$${costume.priceMin}` : `$${costume.priceMin} – $${costume.priceMax}`,
+    creationTime: costume.estimatedTime,
+    tags: costume.tags,
+    images: costume.images.map(img => ({
+      id: img.id,
+      url: img.url,
+      key: img.key,
+      alt: img.alt
+    })),
+    featured: costume.featured,
+    published: costume.published,
   }
 
   return (
@@ -22,7 +59,7 @@ export default async function EditCostumePage({
           Actualiza los detalles de {costume.name}.
         </p>
       </div>
-      <AdminForm costume={costume} />
+      <AdminForm costume={mappedCostume} categories={categories} />
     </div>
   )
 }

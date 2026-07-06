@@ -49,9 +49,9 @@ export async function uploadImageAction(formData: FormData) {
       .webp({ quality: 80 })
       .toBuffer()
 
-    // Generar un key único en una subcarpeta
-    const uniqueId = crypto.randomUUID()
-    const key = `uploads/${uniqueId}.webp`
+    // Generar un key único o usar uno personalizado proporcionado por el cliente
+    const customKey = formData.get('key') as string | null
+    const key = customKey || `uploads/${crypto.randomUUID()}.webp`
 
     // Subir el buffer directo a R2
     await r2Client.send(
