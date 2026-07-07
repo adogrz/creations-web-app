@@ -14,18 +14,23 @@ const layoutConfigs = [
 
 export async function CategoryGrid({ className }: { className?: string }) {
   // Consultar categorías incluyendo el conteo de disfraces publicados
-  const categoriesWithCounts = await prisma.category.findMany({
-    orderBy: { name: 'asc' },
-    include: {
-      _count: {
-        select: {
-          costumes: {
-            where: { published: true },
+  let categoriesWithCounts: any[] = []
+  try {
+    categoriesWithCounts = await prisma.category.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: {
+            costumes: {
+              where: { published: true },
+            },
           },
         },
       },
-    },
-  })
+    })
+  } catch (error) {
+    console.error('Error al obtener categorías con conteos en el Grid:', error)
+  }
 
   return (
     <div

@@ -12,6 +12,8 @@ export const metadata: Metadata = {
   description: 'Administra tu catálogo de disfraces artesanales.',
 }
 
+export const dynamic = 'force-dynamic'
+
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
     <div className="bg-muted/30 flex min-h-dvh">

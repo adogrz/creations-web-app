@@ -10,18 +10,23 @@ export const metadata: Metadata = {
 }
 
 export default async function CategoriesPage() {
-  const categoriesWithCounts = await prisma.category.findMany({
-    orderBy: { name: 'asc' },
-    include: {
-      _count: {
-        select: {
-          costumes: {
-            where: { published: true },
+  let categoriesWithCounts: any[] = []
+  try {
+    categoriesWithCounts = await prisma.category.findMany({
+      orderBy: { name: 'asc' },
+      include: {
+        _count: {
+          select: {
+            costumes: {
+              where: { published: true },
+            },
           },
         },
       },
-    },
-  })
+    })
+  } catch (error) {
+    console.error('Error al obtener categorías con conteos en build:', error)
+  }
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">

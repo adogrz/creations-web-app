@@ -16,11 +16,18 @@ import prisma from '@/lib/db'
 export const dynamicParams = true
 
 export async function generateStaticParams() {
-  const list = await prisma.costume.findMany({
-    where: { published: true },
-    select: { slug: true },
-  })
-  return list.map((costume) => ({ slug: costume.slug }))
+  try {
+    const list = await prisma.costume.findMany({
+      where: { published: true },
+      select: { slug: true },
+    })
+    return list.map((costume) => ({ slug: costume.slug }))
+  } catch (error) {
+    console.warn(
+      'Advertencia: Base de datos no disponible durante la compilación en CI. Las páginas se generarán bajo demanda (on-demand/ISR) en producción.',
+    )
+    return []
+  }
 }
 
 export async function generateMetadata({
