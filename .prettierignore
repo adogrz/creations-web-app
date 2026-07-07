@@ -4,3 +4,4 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 generated
 node_modules
+pnpm-lock.yaml
