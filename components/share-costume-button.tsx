@@ -42,12 +42,12 @@ export function ShareCostumeButton({ className }: ShareCostumeButtonProps) {
       onClick={handleShare}
       aria-label="Compartir disfraz"
       className={cn(
-        'flex size-9 items-center justify-center rounded-full bg-background/80 text-foreground shadow-sm backdrop-blur-sm ring-1 ring-foreground/10 transition-colors hover:bg-background',
+        'bg-background/80 text-foreground ring-foreground/10 hover:bg-background flex size-9 items-center justify-center rounded-full shadow-sm ring-1 backdrop-blur-sm transition-colors',
         className,
       )}
     >
       {copied ? (
-        <Check className="size-4 text-primary" aria-hidden="true" />
+        <Check className="text-primary size-4" aria-hidden="true" />
       ) : (
         <Share2 className="size-4" aria-hidden="true" />
       )}

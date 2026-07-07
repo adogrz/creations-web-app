@@ -34,19 +34,25 @@ signupSchema.parse({ email: 'bad', password: '123', age: 15 })
 import { z } from 'zod'
 
 const signupSchema = z.object({
-  email: z.string({
-    required_error: 'Email is required',
-    invalid_type_error: 'Email must be text',
-  }).email('Please enter a valid email address'),
+  email: z
+    .string({
+      required_error: 'Email is required',
+      invalid_type_error: 'Email must be text',
+    })
+    .email('Please enter a valid email address'),
 
-  password: z.string({
-    required_error: 'Password is required',
-  }).min(8, 'Password must be at least 8 characters'),
+  password: z
+    .string({
+      required_error: 'Password is required',
+    })
+    .min(8, 'Password must be at least 8 characters'),
 
-  age: z.number({
-    required_error: 'Age is required',
-    invalid_type_error: 'Age must be a number',
-  }).min(18, 'You must be at least 18 years old'),
+  age: z
+    .number({
+      required_error: 'Age is required',
+      invalid_type_error: 'Age must be a number',
+    })
+    .min(18, 'You must be at least 18 years old'),
 })
 
 signupSchema.parse({ email: 'bad', password: '123', age: 15 })
@@ -59,19 +65,20 @@ signupSchema.parse({ email: 'bad', password: '123', age: 15 })
 **Message types and when they trigger:**
 
 ```typescript
-const schema = z.string({
-  // When field is undefined
-  required_error: 'This field is required',
+const schema = z
+  .string({
+    // When field is undefined
+    required_error: 'This field is required',
 
-  // When field is wrong type (e.g., number instead of string)
-  invalid_type_error: 'This field must be text',
+    // When field is wrong type (e.g., number instead of string)
+    invalid_type_error: 'This field must be text',
 
-  // Fallback for any other error
-  message: 'Invalid value',
-})
-.min(1, 'Cannot be empty')  // When length < 1
-.max(100, 'Too long')  // When length > 100
-.email('Invalid email format')  // When format fails
+    // Fallback for any other error
+    message: 'Invalid value',
+  })
+  .min(1, 'Cannot be empty') // When length < 1
+  .max(100, 'Too long') // When length > 100
+  .email('Invalid email format') // When format fails
 ```
 
 **Using error maps for consistent messaging:**
@@ -106,12 +113,14 @@ schema.parse(data, { errorMap: customErrorMap })
 ```
 
 **Good error message principles:**
+
 - Say what's wrong: "Password too short" not "Invalid password"
 - Say how to fix it: "at least 8 characters" not just "too short"
 - Use user's language: "email" not "string field at path .email"
 - Be specific: "Must be a positive number" not "Invalid"
 
 **When NOT to use this pattern:**
+
 - Internal development scripts where technical errors are fine
 - When you'll map errors to user-facing messages in the UI layer
 

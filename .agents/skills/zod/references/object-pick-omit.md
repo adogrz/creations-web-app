@@ -36,7 +36,7 @@ const publicUserSchema = z.object({
 // Create input - manually duplicated
 const createUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),  // Different from passwordHash
+  password: z.string().min(8), // Different from passwordHash
   name: z.string(),
   // Missing isAdmin - can't set on create? Intentional?
 })
@@ -79,7 +79,7 @@ type UserResponse = z.infer<typeof userResponseSchema>
 const createUserInputSchema = userSchema
   .omit({ id: true, createdAt: true, passwordHash: true })
   .extend({
-    password: z.string().min(8),  // Add password (different from hash)
+    password: z.string().min(8), // Add password (different from hash)
   })
 
 type CreateUserInput = z.infer<typeof createUserInputSchema>
@@ -100,9 +100,9 @@ const dbRowSchema = z.object({
 })
 
 const apiResponseSchema = dbRowSchema.omit({
-  id: true,  // Internal DB id
-  password_hash: true,  // Sensitive
-  internal_notes: true,  // Staff only
+  id: true, // Internal DB id
+  password_hash: true, // Sensitive
+  internal_notes: true, // Staff only
 })
 
 // Form data → Database insert (add generated fields)
@@ -132,14 +132,15 @@ const baseSchema = z.object({
 
 // Combine pick, omit, partial, extend
 const updateSchema = baseSchema
-  .omit({ id: true, secret: true })  // Remove immutable/sensitive
-  .partial()  // Make all optional for updates
+  .omit({ id: true, secret: true }) // Remove immutable/sensitive
+  .partial() // Make all optional for updates
   .extend({
-    updatedAt: z.date().optional(),  // Add update timestamp
+    updatedAt: z.date().optional(), // Add update timestamp
   })
 ```
 
 **When NOT to use this pattern:**
+
 - When derived schemas need different validation rules (not just different fields)
 - When the relationship between schemas is not subset/superset
 

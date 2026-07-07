@@ -8,8 +8,15 @@ import { verifySession } from '@/lib/auth'
 import { deleteImageAction } from './upload-actions'
 
 const categorySchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido').max(50, 'El nombre es muy largo'),
-  description: z.string().max(200, 'La descripción es muy larga').optional().nullable(),
+  name: z
+    .string()
+    .min(1, 'El nombre es requerido')
+    .max(50, 'El nombre es muy largo'),
+  description: z
+    .string()
+    .max(200, 'La descripción es muy larga')
+    .optional()
+    .nullable(),
   image: z.string().optional().nullable(),
   imageKey: z.string().optional().nullable(),
 })
@@ -46,7 +53,12 @@ export async function createCategoryAction(formData: FormData) {
   const image = formData.get('image') as string
   const imageKey = formData.get('imageKey') as string
 
-  const parsed = categorySchema.safeParse({ name, description, image, imageKey })
+  const parsed = categorySchema.safeParse({
+    name,
+    description,
+    image,
+    imageKey,
+  })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
   }
@@ -58,7 +70,7 @@ export async function createCategoryAction(formData: FormData) {
   try {
     // Verificar duplicado de slug
     const exists = await prisma.category.findUnique({
-      where: { slug }
+      where: { slug },
     })
     if (exists) {
       return { error: 'Ya existe una categoría con un nombre similar' }
@@ -72,7 +84,7 @@ export async function createCategoryAction(formData: FormData) {
         description: parsed.data.description,
         image: parsed.data.image,
         imageKey: parsed.data.imageKey,
-      }
+      },
     })
 
     revalidatePath('/')
@@ -99,7 +111,12 @@ export async function updateCategoryAction(id: string, formData: FormData) {
   const image = formData.get('image') as string
   const imageKey = formData.get('imageKey') as string
 
-  const parsed = categorySchema.safeParse({ name, description, image, imageKey })
+  const parsed = categorySchema.safeParse({
+    name,
+    description,
+    image,
+    imageKey,
+  })
   if (!parsed.success) {
     return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
   }
@@ -111,8 +128,8 @@ export async function updateCategoryAction(id: string, formData: FormData) {
     const exists = await prisma.category.findFirst({
       where: {
         slug,
-        id: { not: id }
-      }
+        id: { not: id },
+      },
     })
     if (exists) {
       return { error: 'Ya existe otra categoría con un nombre similar' }
@@ -120,11 +137,15 @@ export async function updateCategoryAction(id: string, formData: FormData) {
 
     // Obtener la categoría actual para verificar si cambió la imagen
     const current = await prisma.category.findUnique({
-      where: { id }
+      where: { id },
     })
 
     // Si cambió la imagen y existía una anterior, borrar la anterior de R2
-    if (current?.imageKey && parsed.data.imageKey && current.imageKey !== parsed.data.imageKey) {
+    if (
+      current?.imageKey &&
+      parsed.data.imageKey &&
+      current.imageKey !== parsed.data.imageKey
+    ) {
       await deleteImageAction(current.imageKey)
     }
 
@@ -136,7 +157,7 @@ export async function updateCategoryAction(id: string, formData: FormData) {
         description: parsed.data.description,
         image: parsed.data.image || current?.image,
         imageKey: parsed.data.imageKey || current?.imageKey,
-      }
+      },
     })
 
     revalidatePath('/')
@@ -161,14 +182,17 @@ export async function deleteCategoryAction(id: string) {
   try {
     // Validación crítica: verificar si tiene disfraces asociados
     const count = await prisma.costume.count({
-      where: { categoryId: id }
+      where: { categoryId: id },
     })
     if (count > 0) {
-      return { error: 'No se puede eliminar una categoría que tiene disfraces asociados' }
+      return {
+        error:
+          'No se puede eliminar una categoría que tiene disfraces asociados',
+      }
     }
 
     const current = await prisma.category.findUnique({
-      where: { id }
+      where: { id },
     })
 
     // Borrar la imagen de R2 si existe
@@ -177,7 +201,7 @@ export async function deleteCategoryAction(id: string) {
     }
 
     await prisma.category.delete({
-      where: { id }
+      where: { id },
     })
 
     revalidatePath('/')

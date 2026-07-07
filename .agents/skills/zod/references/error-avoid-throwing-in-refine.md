@@ -14,16 +14,18 @@ When using `.refine()` for custom validation, return `false` for invalid data in
 ```typescript
 import { z } from 'zod'
 
-const passwordSchema = z.object({
-  password: z.string().min(8),
-  confirmPassword: z.string(),
-}).refine((data) => {
-  if (data.password !== data.confirmPassword) {
-    // Throwing stops all further validation
-    throw new Error('Passwords do not match')
-  }
-  return true
-})
+const passwordSchema = z
+  .object({
+    password: z.string().min(8),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => {
+    if (data.password !== data.confirmPassword) {
+      // Throwing stops all further validation
+      throw new Error('Passwords do not match')
+    }
+    return true
+  })
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -46,13 +48,15 @@ formSchema.safeParse({
 ```typescript
 import { z } from 'zod'
 
-const passwordSchema = z.object({
-  password: z.string().min(8),
-  confirmPassword: z.string(),
-}).refine(
-  (data) => data.password === data.confirmPassword,
-  { message: 'Passwords do not match', path: ['confirmPassword'] }
-)
+const passwordSchema = z
+  .object({
+    password: z.string().min(8),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: 'Passwords do not match',
+    path: ['confirmPassword'],
+  })
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -108,19 +112,22 @@ passwordSchema.safeParse('weak')
 **Correct pattern for async validation:**
 
 ```typescript
-const schema = z.object({
-  email: z.string().email(),
-}).refine(
-  async (data) => {
-    // Return boolean, don't throw
-    const exists = await checkEmailExists(data.email)
-    return !exists
-  },
-  { message: 'Email already registered', path: ['email'] }
-)
+const schema = z
+  .object({
+    email: z.string().email(),
+  })
+  .refine(
+    async (data) => {
+      // Return boolean, don't throw
+      const exists = await checkEmailExists(data.email)
+      return !exists
+    },
+    { message: 'Email already registered', path: ['email'] },
+  )
 ```
 
 **When NOT to use this pattern:**
+
 - When you need to abort validation entirely (security issues)
 - When subsequent validations depend on current check passing
 

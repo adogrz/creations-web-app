@@ -15,10 +15,16 @@ type Settings = {
   instagramHandle: string | null
 }
 
-export function AdminSettingsForm({ initialSettings }: { initialSettings: Settings }) {
+export function AdminSettingsForm({
+  initialSettings,
+}: {
+  initialSettings: Settings
+}) {
   const [whatsapp, setWhatsapp] = useState(initialSettings.whatsappNumber)
   const [messenger, setMessenger] = useState(initialSettings.messengerHandle)
-  const [instagram, setInstagram] = useState(initialSettings.instagramHandle || '')
+  const [instagram, setInstagram] = useState(
+    initialSettings.instagramHandle || '',
+  )
 
   // Sincronizar el estado interno si las configuraciones del servidor cambian
   useEffect(() => {
@@ -27,7 +33,10 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Settin
     setInstagram(initialSettings.instagramHandle || '')
   }, [initialSettings])
 
-  const [state, formAction, isPending] = useActionState(updateSettingsAction, null)
+  const [state, formAction, isPending] = useActionState(
+    updateSettingsAction,
+    null,
+  )
 
   useEffect(() => {
     if (state?.success) {
@@ -40,9 +49,9 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Settin
   return (
     <form action={formAction} className="flex flex-col gap-5">
       {/* WhatsApp */}
-      <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
+      <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
         <div className="mb-4 flex items-center gap-2">
-          <Phone className="size-4 text-primary" aria-hidden="true" />
+          <Phone className="text-primary size-4" aria-hidden="true" />
           <h2 className="font-heading text-base font-medium">WhatsApp</h2>
         </div>
         <div className="flex flex-col gap-2">
@@ -57,18 +66,20 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Settin
             required
             disabled={isPending}
           />
-          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-            <Info className="size-3.5 mt-0.5 shrink-0" />
+          <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
             Solo números, con código de país. Ej: 50376772999
           </p>
         </div>
       </div>
 
       {/* Messenger */}
-      <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
+      <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
         <div className="mb-4 flex items-center gap-2">
-          <MessageCircle className="size-4 text-primary" aria-hidden="true" />
-          <h2 className="font-heading text-base font-medium">Messenger / Facebook</h2>
+          <MessageCircle className="text-primary size-4" aria-hidden="true" />
+          <h2 className="font-heading text-base font-medium">
+            Messenger / Facebook
+          </h2>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="messengerHandle">Username o ID de la página</Label>
@@ -81,17 +92,17 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Settin
             required
             disabled={isPending}
           />
-          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-            <Info className="size-3.5 mt-0.5 shrink-0" />
+          <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
             El username de tu página de Facebook. Ej: creaciones1.sv
           </p>
         </div>
       </div>
 
       {/* Instagram */}
-      <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
+      <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
         <div className="mb-4 flex items-center gap-2">
-          <InstagramIcon className="size-4 text-primary" aria-hidden="true" />
+          <InstagramIcon className="text-primary size-4" aria-hidden="true" />
           <h2 className="font-heading text-base font-medium">Instagram</h2>
         </div>
         <div className="flex flex-col gap-2">
@@ -104,21 +115,28 @@ export function AdminSettingsForm({ initialSettings }: { initialSettings: Settin
             placeholder="creations.sv_"
             disabled={isPending}
           />
-          <p className="text-xs text-muted-foreground flex items-start gap-1.5">
-            <Info className="size-3.5 mt-0.5 shrink-0" />
+          <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
+            <Info className="mt-0.5 size-3.5 shrink-0" />
             Sin el @. Ej: creations.sv_
           </p>
         </div>
       </div>
 
       <div className="flex items-center justify-between gap-4">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           Los cambios se aplican al sitio inmediatamente.
         </p>
-        <Button type="submit" className="rounded-full shrink-0" disabled={isPending}>
+        <Button
+          type="submit"
+          className="shrink-0 rounded-full"
+          disabled={isPending}
+        >
           {isPending ? (
             <>
-              <Loader2 className="size-4 animate-spin mr-2" aria-hidden="true" />
+              <Loader2
+                className="mr-2 size-4 animate-spin"
+                aria-hidden="true"
+              />
               Guardando...
             </>
           ) : (

@@ -23,10 +23,10 @@ const userPrefsSchema = z.object({
 
 // Corrupted localStorage data
 const stored = {
-  theme: 'invalid-theme',  // Bad
-  fontSize: 200,  // Bad
-  language: 'en',  // Good
-  notifications: 'yes',  // Bad - should be boolean
+  theme: 'invalid-theme', // Bad
+  fontSize: 200, // Bad
+  language: 'en', // Good
+  notifications: 'yes', // Bad - should be boolean
 }
 
 userPrefsSchema.parse(stored)
@@ -71,7 +71,7 @@ const prefs = userPrefsSchema.parse(stored)
 const schema = z.object({
   data: z.array(z.number()).catch((ctx) => {
     console.warn('Invalid data array:', ctx.error)
-    return []  // Return empty array as fallback
+    return [] // Return empty array as fallback
   }),
 })
 ```
@@ -94,8 +94,8 @@ const apiResponse = {
   id: 'prod-123',
   name: 'Widget',
   price: 29.99,
-  legacyCode: null,  // Bad - should be string
-  metadata: 'invalid',  // Bad - should be object
+  legacyCode: null, // Bad - should be string
+  metadata: 'invalid', // Bad - should be object
 }
 
 const product = productSchema.parse(apiResponse)
@@ -123,19 +123,14 @@ z.string().catch('fallback')
 
 ```typescript
 // Catch only specific validation failures
-const schema = z.string()
-  .email()
-  .catch('invalid@example.com')  // Fallback if not valid email
+const schema = z.string().email().catch('invalid@example.com') // Fallback if not valid email
 
 // Chain for complex defaults
-const ageSchema = z.coerce.number()
-  .int()
-  .min(0)
-  .max(120)
-  .catch(0)  // Invalid ages become 0
+const ageSchema = z.coerce.number().int().min(0).max(120).catch(0) // Invalid ages become 0
 ```
 
 **When NOT to use this pattern:**
+
 - When invalid data should cause errors (strict validation)
 - When you need to know which fields failed (use safeParse)
 - Critical fields that must be valid

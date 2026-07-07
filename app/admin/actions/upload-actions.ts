@@ -60,7 +60,7 @@ export async function uploadImageAction(formData: FormData) {
         Key: key,
         Body: optimizedBuffer,
         ContentType: 'image/webp',
-      })
+      }),
     )
 
     // Construir la URL pública final
@@ -89,7 +89,7 @@ export async function deleteImageAction(key: string) {
       new DeleteObjectCommand({
         Bucket: R2_BUCKET_NAME,
         Key: key,
-      })
+      }),
     )
     return { success: true }
   } catch (error) {

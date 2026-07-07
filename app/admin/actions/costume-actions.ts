@@ -8,21 +8,34 @@ import { verifySession } from '@/lib/auth'
 import { deleteImageAction } from './upload-actions'
 
 const costumeSchema = z.object({
-  name: z.string().min(1, 'El nombre es requerido').max(100, 'El nombre es muy largo'),
+  name: z
+    .string()
+    .min(1, 'El nombre es requerido')
+    .max(100, 'El nombre es muy largo'),
   shortDescription: z.string().min(1, 'La descripción corta es requerida'),
   description: z.string().min(1, 'La descripción completa es requerida'),
-  priceMin: z.coerce.number().int().min(0, 'El precio mínimo debe ser mayor o igual a 0'),
-  priceMax: z.coerce.number().int().min(0, 'El precio máximo debe ser mayor o igual a 0'),
+  priceMin: z.coerce
+    .number()
+    .int()
+    .min(0, 'El precio mínimo debe ser mayor o igual a 0'),
+  priceMax: z.coerce
+    .number()
+    .int()
+    .min(0, 'El precio máximo debe ser mayor o igual a 0'),
   estimatedTime: z.string().min(1, 'El tiempo estimado es requerido'),
   audience: z.enum(['KIDS', 'ADULTS', 'ALL']),
   categoryId: z.string().min(1, 'La categoría es requerida'),
   published: z.coerce.boolean().default(true),
   featured: z.coerce.boolean().default(false),
-  tags: z.string().transform(val => 
-    val.split(',')
-      .map(t => t.trim())
-      .filter(t => t.length > 0)
-  ).default(''),
+  tags: z
+    .string()
+    .transform((val) =>
+      val
+        .split(',')
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0),
+    )
+    .default([]),
 })
 
 async function checkAuth() {
@@ -72,7 +85,11 @@ export async function createCostumeAction(formData: FormData) {
   }
 
   const imagesRaw = formData.get('images') as string
-  const imagesList = JSON.parse(imagesRaw || '[]') as { url: string; key: string; alt?: string }[]
+  const imagesList = JSON.parse(imagesRaw || '[]') as {
+    url: string
+    key: string
+    alt?: string
+  }[]
 
   if (imagesList.length === 0) {
     return { error: 'Debes añadir al menos una imagen' }
@@ -90,7 +107,7 @@ export async function createCostumeAction(formData: FormData) {
     // Verificar límite de destacados si corresponde
     if (parsed.data.featured && parsed.data.published) {
       const featuredCount = await prisma.costume.count({
-        where: { featured: true, published: true }
+        where: { featured: true, published: true },
       })
       if (featuredCount >= 10) {
         return { error: 'Límite alcanzado: máximo 10 disfraces destacados' }
@@ -116,7 +133,7 @@ export async function createCostumeAction(formData: FormData) {
           published: parsed.data.published,
           featured: parsed.data.featured,
           categoryId: parsed.data.categoryId,
-        }
+        },
       })
 
       // Insertar imágenes asociadas
@@ -126,8 +143,8 @@ export async function createCostumeAction(formData: FormData) {
           key: img.key,
           alt: img.alt || parsed.data.name,
           order: i,
-          costumeId: costume.id
-        }))
+          costumeId: costume.id,
+        })),
       })
     })
 
@@ -174,7 +191,12 @@ export async function updateCostumeAction(formData: FormData) {
   }
 
   const imagesRaw = formData.get('images') as string
-  const imagesList = JSON.parse(imagesRaw || '[]') as { id?: string; url: string; key: string; alt?: string }[]
+  const imagesList = JSON.parse(imagesRaw || '[]') as {
+    id?: string
+    url: string
+    key: string
+    alt?: string
+  }[]
 
   if (imagesList.length === 0) {
     return { error: 'Debes añadir al menos una imagen' }
@@ -187,8 +209,8 @@ export async function updateCostumeAction(formData: FormData) {
     const exists = await prisma.costume.findFirst({
       where: {
         slug,
-        id: { not: id }
-      }
+        id: { not: id },
+      },
     })
     if (exists) {
       return { error: 'Ya existe otro disfraz con un nombre similar' }
@@ -200,8 +222,8 @@ export async function updateCostumeAction(formData: FormData) {
         where: {
           featured: true,
           published: true,
-          id: { not: id }
-        }
+          id: { not: id },
+        },
       })
       if (featuredCount >= 10) {
         return { error: 'Límite alcanzado: máximo 10 disfraces destacados' }
@@ -210,12 +232,12 @@ export async function updateCostumeAction(formData: FormData) {
 
     // Obtener imágenes actuales en la base de datos
     const currentImages = await prisma.image.findMany({
-      where: { costumeId: id }
+      where: { costumeId: id },
     })
 
     // Encontrar imágenes que fueron eliminadas del formulario para borrarlas de R2
-    const keepKeys = new Set(imagesList.map(img => img.key))
-    const deleteImages = currentImages.filter(img => !keepKeys.has(img.key))
+    const keepKeys = new Set(imagesList.map((img) => img.key))
+    const deleteImages = currentImages.filter((img) => !keepKeys.has(img.key))
 
     for (const img of deleteImages) {
       await deleteImageAction(img.key)
@@ -238,12 +260,12 @@ export async function updateCostumeAction(formData: FormData) {
           published: parsed.data.published,
           featured: parsed.data.featured,
           categoryId: parsed.data.categoryId,
-        }
+        },
       })
 
       // Eliminar registros viejos de imágenes en la BD y recrear la galería actualizada
       await tx.image.deleteMany({
-        where: { costumeId: id }
+        where: { costumeId: id },
       })
 
       await tx.image.createMany({
@@ -252,8 +274,8 @@ export async function updateCostumeAction(formData: FormData) {
           key: img.key,
           alt: img.alt || parsed.data.name,
           order: i,
-          costumeId: id
-        }))
+          costumeId: id,
+        })),
       })
     })
 
@@ -278,17 +300,15 @@ export async function deleteCostumeAction(id: string) {
 
   try {
     const currentImages = await prisma.image.findMany({
-      where: { costumeId: id }
+      where: { costumeId: id },
     })
 
     // Borrar imágenes de R2 en paralelo
-    await Promise.all(
-      currentImages.map(img => deleteImageAction(img.key))
-    )
+    await Promise.all(currentImages.map((img) => deleteImageAction(img.key)))
 
     // Borrar de la base de datos (las imágenes asociadas se borrarán en cascada)
     await prisma.costume.delete({
-      where: { id }
+      where: { id },
     })
 
     revalidatePath('/')

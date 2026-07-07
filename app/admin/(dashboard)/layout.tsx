@@ -14,25 +14,27 @@ export const metadata: Metadata = {
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh bg-muted/30">
+    <div className="bg-muted/30 flex min-h-dvh">
       <AdminNav />
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Top Header visible en todas las pantallas */}
-        <header className="flex h-14 items-center justify-between border-b border-border bg-background px-4">
+        <header className="border-border bg-background flex h-14 items-center justify-between border-b px-4">
           {/* Logo visible solo en móvil */}
           <Link href="/admin" className="flex items-center gap-2 md:hidden">
-            <div className="flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary">
+            <div className="bg-primary flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-full">
               <Image
                 src="/creations-logo.webp"
                 alt="Creations logo"
                 width={28}
                 height={28}
-                className="object-cover size-full"
+                className="size-full object-cover"
               />
             </div>
-            <span className="font-heading text-base font-semibold">Estudio</span>
+            <span className="font-heading text-base font-semibold">
+              Estudio
+            </span>
           </Link>
-          
+
           {/* Espaciador oculto en móvil, visible en escritorio */}
           <div className="hidden md:block" />
 
@@ -40,7 +42,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
           <div className="flex items-center gap-2">
             <Link
               href="/"
-              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color] border border-border"
+              className="text-muted-foreground hover:bg-muted hover:text-foreground border-border flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-[color,background-color]"
             >
               <ArrowLeft className="size-3.5" aria-hidden="true" />
               Volver al sitio
@@ -49,7 +51,7 @@ export default function AdminLayout({ children }: { children: ReactNode }) {
               <Button
                 type="submit"
                 variant="outline"
-                className="flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-[color,background-color] border border-border h-auto"
+                className="text-muted-foreground hover:bg-muted hover:text-foreground border-border flex h-auto items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-[color,background-color]"
               >
                 <LogOut className="size-3.5" aria-hidden="true" />
                 Cerrar sesión

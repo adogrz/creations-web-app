@@ -33,8 +33,10 @@ import { z } from 'zod'
 
 function validateArrayFastFail<T>(
   schema: z.ZodType<T>,
-  items: unknown[]
-): { success: true; data: T[] } | { success: false; error: z.ZodError; index: number } {
+  items: unknown[],
+):
+  | { success: true; data: T[] }
+  | { success: false; error: z.ZodError; index: number } {
   const validated: T[] = []
 
   for (let i = 0; i < items.length; i++) {
@@ -57,7 +59,7 @@ function validateArrayFastFail<T>(
 function validateSample<T>(
   schema: z.ZodType<T>,
   items: unknown[],
-  sampleSize: number = 100
+  sampleSize: number = 100,
 ): { valid: boolean; sampleErrors?: z.ZodIssue[] } {
   // Validate random sample
   const indices = new Set<number>()
@@ -90,7 +92,7 @@ async function validateInBatches<T>(
   schema: z.ZodType<T>,
   items: unknown[],
   batchSize: number = 1000,
-  onProgress?: (percent: number) => void
+  onProgress?: (percent: number) => void,
 ): Promise<z.SafeParseReturnType<unknown, T[]>> {
   const validated: T[] = []
   const errors: z.ZodIssue[] = []
@@ -104,16 +106,18 @@ async function validateInBatches<T>(
       if (result.success) {
         validated.push(result.data)
       } else {
-        errors.push(...result.error.issues.map(issue => ({
-          ...issue,
-          path: [i + j, ...issue.path],
-        })))
+        errors.push(
+          ...result.error.issues.map((issue) => ({
+            ...issue,
+            path: [i + j, ...issue.path],
+          })),
+        )
       }
     }
 
     // Report progress and yield to event loop
     onProgress?.(Math.min(100, ((i + batchSize) / items.length) * 100))
-    await new Promise(resolve => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
   }
 
   if (errors.length > 0) {
@@ -133,10 +137,10 @@ await validateInBatches(itemSchema, largeArray, 1000, (percent) => {
 ```typescript
 async function* validateStream<T>(
   schema: z.ZodType<T>,
-  items: AsyncIterable<unknown>
+  items: AsyncIterable<unknown>,
 ): AsyncGenerator<T, void, unknown> {
   for await (const item of items) {
-    yield schema.parse(item)  // Throws on invalid
+    yield schema.parse(item) // Throws on invalid
   }
 }
 
@@ -147,6 +151,7 @@ for await (const validItem of validateStream(itemSchema, dataStream)) {
 ```
 
 **When NOT to use this pattern:**
+
 - Small arrays (< 1000 items) - standard validation is fine
 - When all items must be validated for correctness guarantees
 

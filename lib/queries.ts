@@ -1,11 +1,11 @@
-import prisma from "@/lib/db";
+import prisma from '@/lib/db'
 
 const DEFAULT_SETTINGS = {
-  id: "singleton",
-  whatsappNumber: "50376772999",
-  messengerHandle: "creaciones1.sv",
-  instagramHandle: "creations.sv_",
-};
+  id: 'singleton',
+  whatsappNumber: '50376772999',
+  messengerHandle: 'creaciones1.sv',
+  instagramHandle: 'creations.sv_',
+}
 
 /**
  * Obtiene todas las categorías de la base de datos, ordenadas alfabéticamente
@@ -13,11 +13,11 @@ const DEFAULT_SETTINGS = {
 export async function getCategories() {
   try {
     return await prisma.category.findMany({
-      orderBy: { name: "asc" },
-    });
+      orderBy: { name: 'asc' },
+    })
   } catch (error) {
-    console.error("Error al obtener categorías:", error);
-    return [];
+    console.error('Error al obtener categorías:', error)
+    return []
   }
 }
 
@@ -27,12 +27,12 @@ export async function getCategories() {
 export async function getSettings() {
   try {
     const settings = await prisma.settings.findUnique({
-      where: { id: "singleton" },
-    });
-    return settings || { ...DEFAULT_SETTINGS, updatedAt: new Date() };
+      where: { id: 'singleton' },
+    })
+    return settings || { ...DEFAULT_SETTINGS, updatedAt: new Date() }
   } catch (error) {
-    console.error("Error al obtener settings:", error);
-    return { ...DEFAULT_SETTINGS, updatedAt: new Date() };
+    console.error('Error al obtener settings:', error)
+    return { ...DEFAULT_SETTINGS, updatedAt: new Date() }
   }
 }
 
@@ -40,26 +40,27 @@ export async function getSettings() {
  * Obtiene la lista de disfraces con filtros opcionales (por defecto solo publicados)
  */
 export async function getCostumes(options?: {
-  categoryId?: string;
-  categorySlug?: string;
-  featured?: boolean;
-  published?: boolean;
+  categoryId?: string
+  categorySlug?: string
+  featured?: boolean
+  published?: boolean
 }) {
-  const publishedFilter = options?.published !== undefined ? options.published : true;
-  
-  const where: any = {};
-  
+  const publishedFilter =
+    options?.published !== undefined ? options.published : true
+
+  const where: any = {}
+
   if (publishedFilter !== null) {
-    where.published = publishedFilter;
+    where.published = publishedFilter
   }
   if (options?.categoryId) {
-    where.categoryId = options.categoryId;
+    where.categoryId = options.categoryId
   }
   if (options?.categorySlug) {
-    where.category = { slug: options.categorySlug };
+    where.category = { slug: options.categorySlug }
   }
   if (options?.featured !== undefined) {
-    where.featured = options.featured;
+    where.featured = options.featured
   }
 
   try {
@@ -67,15 +68,15 @@ export async function getCostumes(options?: {
       where,
       include: {
         images: {
-          orderBy: { order: "asc" },
+          orderBy: { order: 'asc' },
         },
         category: true,
       },
-      orderBy: { createdAt: "desc" },
-    });
+      orderBy: { createdAt: 'desc' },
+    })
   } catch (error) {
-    console.error("Error al obtener disfraces:", error);
-    return [];
+    console.error('Error al obtener disfraces:', error)
+    return []
   }
 }
 
@@ -88,14 +89,14 @@ export async function getCostumeBySlug(slug: string) {
       where: { slug },
       include: {
         images: {
-          orderBy: { order: "asc" },
+          orderBy: { order: 'asc' },
         },
         category: true,
       },
-    });
+    })
   } catch (error) {
-    console.error(`Error al obtener disfraz con slug ${slug}:`, error);
-    return null;
+    console.error(`Error al obtener disfraz con slug ${slug}:`, error)
+    return null
   }
 }
 
@@ -104,19 +105,19 @@ export async function getCostumeBySlug(slug: string) {
  */
 export async function getFeaturedCostumes(limit = 10) {
   return getCostumes({ featured: true, published: true }).then((list) =>
-    list.slice(0, limit)
-  );
+    list.slice(0, limit),
+  )
 }
 
 /**
  * Obtiene disfraces relacionados (mismo tipo de categoría, excluyendo el actual)
  */
 export async function getRelatedCostumes(options: {
-  costumeId: string;
-  categoryId: string;
-  limit?: number;
+  costumeId: string
+  categoryId: string
+  limit?: number
 }) {
-  const limit = options.limit ?? 4;
+  const limit = options.limit ?? 4
   try {
     return await prisma.costume.findMany({
       where: {
@@ -126,15 +127,15 @@ export async function getRelatedCostumes(options: {
       },
       include: {
         images: {
-          orderBy: { order: "asc" },
+          orderBy: { order: 'asc' },
         },
         category: true,
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
       take: limit,
-    });
+    })
   } catch (error) {
-    console.error("Error al obtener disfraces relacionados:", error);
-    return [];
+    console.error('Error al obtener disfraces relacionados:', error)
+    return []
   }
 }

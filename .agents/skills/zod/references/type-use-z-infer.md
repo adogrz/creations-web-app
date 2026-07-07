@@ -28,13 +28,13 @@ const userSchema = z.object({
   name: z.string().min(1),
   email: z.string().email(),
   age: z.number().int().positive(),
-  role: z.enum(['admin', 'user']),  // Added to schema, forgot to add to interface!
+  role: z.enum(['admin', 'user']), // Added to schema, forgot to add to interface!
 })
 
 // Type and schema are now out of sync
 function createUser(user: User) {
-  const validated = userSchema.parse(user)  // Has role
-  saveToDb(user)  // Missing role - TypeScript doesn't warn
+  const validated = userSchema.parse(user) // Has role
+  saveToDb(user) // Missing role - TypeScript doesn't warn
 }
 ```
 
@@ -68,7 +68,7 @@ function createUser(user: User) {
 ```typescript
 const userSchema = z.object({
   name: z.string(),
-  createdAt: z.string().transform(s => new Date(s)),  // String in, Date out
+  createdAt: z.string().transform((s) => new Date(s)), // String in, Date out
 })
 
 // z.infer gives output type (after transforms)
@@ -81,8 +81,8 @@ type UserInput = z.input<typeof userSchema>
 
 // Use input type for function parameters accepting raw data
 function processUser(input: UserInput) {
-  const user = userSchema.parse(input)  // user is User type
-  return user.createdAt.getTime()  // Date methods available
+  const user = userSchema.parse(input) // user is User type
+  return user.createdAt.getTime() // Date methods available
 }
 ```
 
@@ -104,6 +104,7 @@ type User = z.infer<typeof userSchema>
 ```
 
 **When NOT to use this pattern:**
+
 - When you need a type that's different from the validation schema
 - When interfacing with external types you don't control
 

@@ -1,0 +1,55 @@
+name: CI Quality Check
+
+on:
+  pull_request:
+    branches: ['main']
+  push:
+    branches: ['main']
+
+jobs:
+  verification:
+    name: Verificar Calidad
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Check de Formato (Prettier)
+      - name: Check Formatting
+        run: pnpm format:check
+
+      # Check de Linting (ESLint)
+      - name: Check Linting
+        run: pnpm lint
+
+      # Check de Tipos (TypeScript)
+      - name: Check Types
+        run: pnpm typecheck
+
+      # Check de Build (Next.js Build)
+      - name: Verify Build
+        run: pnpm build
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/postgres'
+          SESSION_SECRET: 'dummy-session-secret-at-least-32-chars-long'
+          ADMIN_PASSWORD: 'dummy-admin-password'
+          R2_ACCESS_KEY_ID: 'dummy-key-id'
+          R2_SECRET_ACCESS_KEY: 'dummy-secret-key'
+          CLOUDFLARE_ACCOUNT_ID: 'dummy-account-id'
+          R2_BUCKET_NAME: 'dummy-bucket-name'
+          R2_PUBLIC_URL: 'https://example.com'

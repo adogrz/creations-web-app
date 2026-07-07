@@ -16,13 +16,15 @@ import { z } from 'zod'
 
 const searchSchema = z.object({
   query: z.string(),
-  page: z.number(),  // Expects actual number
+  page: z.number(), // Expects actual number
   limit: z.number(),
-  showDeleted: z.boolean(),  // Expects actual boolean
+  showDeleted: z.boolean(), // Expects actual boolean
 })
 
 // Form data / query params are strings
-const formData = new URLSearchParams('query=test&page=1&limit=10&showDeleted=true')
+const formData = new URLSearchParams(
+  'query=test&page=1&limit=10&showDeleted=true',
+)
 const params = Object.fromEntries(formData)
 // { query: 'test', page: '1', limit: '10', showDeleted: 'true' }
 
@@ -45,7 +47,9 @@ const searchSchema = z.object({
 })
 
 // Form data / query params are strings
-const formData = new URLSearchParams('query=test&page=1&limit=10&showDeleted=true')
+const formData = new URLSearchParams(
+  'query=test&page=1&limit=10&showDeleted=true',
+)
 const params = Object.fromEntries(formData)
 
 const result = searchSchema.parse(params)
@@ -56,32 +60,35 @@ const result = searchSchema.parse(params)
 **Available coercion types:**
 
 ```typescript
-z.coerce.string()  // Converts anything to string via String(value)
-z.coerce.number()  // Converts via Number(value), NaN fails validation
-z.coerce.boolean()  // Truthy/falsy conversion
-z.coerce.bigint()  // Converts via BigInt(value)
-z.coerce.date()  // Converts via new Date(value)
+z.coerce.string() // Converts anything to string via String(value)
+z.coerce.number() // Converts via Number(value), NaN fails validation
+z.coerce.boolean() // Truthy/falsy conversion
+z.coerce.bigint() // Converts via BigInt(value)
+z.coerce.date() // Converts via new Date(value)
 ```
 
 **Coercion edge cases:**
 
 ```typescript
 // z.coerce.number() behavior
-z.coerce.number().parse("42")  // 42
-z.coerce.number().parse("")  // 0 (empty string becomes 0!)
-z.coerce.number().parse("abc")  // ZodError (NaN fails)
+z.coerce.number().parse('42') // 42
+z.coerce.number().parse('') // 0 (empty string becomes 0!)
+z.coerce.number().parse('abc') // ZodError (NaN fails)
 
 // z.coerce.boolean() behavior
-z.coerce.boolean().parse("true")  // true
-z.coerce.boolean().parse("false")  // true! (non-empty string is truthy)
-z.coerce.boolean().parse("")  // false
-z.coerce.boolean().parse("0")  // true! (non-empty string)
+z.coerce.boolean().parse('true') // true
+z.coerce.boolean().parse('false') // true! (non-empty string is truthy)
+z.coerce.boolean().parse('') // false
+z.coerce.boolean().parse('0') // true! (non-empty string)
 
 // For strict boolean parsing from strings:
-const strictBooleanSchema = z.enum(['true', 'false']).transform(v => v === 'true')
+const strictBooleanSchema = z
+  .enum(['true', 'false'])
+  .transform((v) => v === 'true')
 ```
 
 **When NOT to use this pattern:**
+
 - When receiving JSON payloads (already typed correctly)
 - When you want strict type checking without conversion
 

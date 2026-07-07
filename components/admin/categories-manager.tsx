@@ -2,7 +2,16 @@
 
 import { useState, useEffect, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { Pencil, Trash2, PlusCircle, Check, X, FolderOpen, Loader2, UploadCloud } from 'lucide-react'
+import {
+  Pencil,
+  Trash2,
+  PlusCircle,
+  Check,
+  X,
+  FolderOpen,
+  Loader2,
+  UploadCloud,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -18,8 +27,15 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
-import { createCategoryAction, updateCategoryAction, deleteCategoryAction } from '@/app/admin/actions/category-actions'
-import { uploadImageAction, deleteImageAction } from '@/app/admin/actions/upload-actions'
+import {
+  createCategoryAction,
+  updateCategoryAction,
+  deleteCategoryAction,
+} from '@/app/admin/actions/category-actions'
+import {
+  uploadImageAction,
+  deleteImageAction,
+} from '@/app/admin/actions/upload-actions'
 import { toast } from 'sonner'
 
 function slugify(text: string) {
@@ -43,17 +59,21 @@ type CategoryItem = {
   costumeCount: number
 }
 
-export function CategoriesManager({ initialCategories }: { initialCategories: CategoryItem[] }) {
+export function CategoriesManager({
+  initialCategories,
+}: {
+  initialCategories: CategoryItem[]
+}) {
   const router = useRouter()
   const [list, setList] = useState<CategoryItem[]>(initialCategories)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
-  
+
   const [adding, setAdding] = useState(false)
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
-  
+
   // Archivo local e URL de preview para evitar subidas huérfanas en R2
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
@@ -200,8 +220,10 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
     <div className="flex flex-col gap-4">
       {/* Add new category */}
       {adding ? (
-        <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-          <h3 className="mb-4 font-heading text-base font-medium">Nueva categoría</h3>
+        <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
+          <h3 className="font-heading mb-4 text-base font-medium">
+            Nueva categoría
+          </h3>
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="new-cat-name">Nombre</Label>
@@ -230,13 +252,13 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                 <>
                   <label
                     htmlFor="new-cat-file"
-                    className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-muted/50 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none"
+                    className="border-border hover:border-primary/50 hover:bg-muted/50 focus-within:ring-ring flex w-full cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-colors focus-within:ring-2 focus-within:outline-none"
                   >
-                    <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+                    <span className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-full">
                       <UploadCloud className="size-5" aria-hidden="true" />
                     </span>
                     <span className="text-sm font-medium">Subir imagen</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-muted-foreground text-xs">
                       PNG o JPG, haz clic para buscar
                     </span>
                   </label>
@@ -250,7 +272,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                   />
                 </>
               ) : (
-                <div className="relative mt-2 aspect-video w-full max-w-xs overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10">
+                <div className="bg-muted ring-foreground/10 relative mt-2 aspect-video w-full max-w-xs overflow-hidden rounded-xl ring-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={previewUrl}
@@ -261,7 +283,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                     type="button"
                     onClick={removeImage}
                     disabled={isPending}
-                    className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                    className="bg-background/90 text-foreground focus-visible:ring-ring absolute top-1 right-1 flex size-7 items-center justify-center rounded-full shadow-sm focus-visible:ring-2 focus-visible:outline-none"
                   >
                     <X className="size-3.5" aria-hidden="true" />
                   </button>
@@ -276,7 +298,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                 className="rounded-full"
               >
                 {isPending ? (
-                  <Loader2 className="size-4 animate-spin mr-2" />
+                  <Loader2 className="mr-2 size-4 animate-spin" />
                 ) : (
                   <Check className="size-4" aria-hidden="true" />
                 )}
@@ -323,7 +345,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
           return (
             <div
               key={cat.id}
-              className="rounded-2xl bg-card p-4 ring-1 ring-foreground/5 shadow-xs"
+              className="bg-card ring-foreground/5 rounded-2xl p-4 shadow-xs ring-1"
             >
               {isEditing ? (
                 <div className="flex flex-col gap-4">
@@ -352,13 +374,18 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                       <>
                         <label
                           htmlFor={`edit-file-${cat.id}`}
-                          className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center cursor-pointer transition-colors hover:border-primary/50 hover:bg-muted/50 focus-within:ring-2 focus-within:ring-ring focus-within:outline-none"
+                          className="border-border hover:border-primary/50 hover:bg-muted/50 focus-within:ring-ring flex w-full cursor-pointer flex-col items-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-colors focus-within:ring-2 focus-within:outline-none"
                         >
-                          <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
-                            <UploadCloud className="size-5" aria-hidden="true" />
+                          <span className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-full">
+                            <UploadCloud
+                              className="size-5"
+                              aria-hidden="true"
+                            />
                           </span>
-                          <span className="text-sm font-medium">Subir nueva imagen</span>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-sm font-medium">
+                            Subir nueva imagen
+                          </span>
+                          <span className="text-muted-foreground text-xs">
                             PNG o JPG, haz clic para buscar
                           </span>
                         </label>
@@ -372,7 +399,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                         />
                       </>
                     ) : (
-                      <div className="relative mt-2 aspect-video w-full max-w-xs overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10">
+                      <div className="bg-muted ring-foreground/10 relative mt-2 aspect-video w-full max-w-xs overflow-hidden rounded-xl ring-1">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={previewUrl}
@@ -383,7 +410,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                           type="button"
                           onClick={removeImage}
                           disabled={isPending}
-                          className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                          className="bg-background/90 text-foreground focus-visible:ring-ring absolute top-1 right-1 flex size-7 items-center justify-center rounded-full shadow-sm focus-visible:ring-2 focus-visible:outline-none"
                         >
                           <X className="size-3.5" aria-hidden="true" />
                         </button>
@@ -399,7 +426,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                       className="rounded-full"
                     >
                       {isPending ? (
-                        <Loader2 className="size-3.5 animate-spin mr-1.5" />
+                        <Loader2 className="mr-1.5 size-3.5 animate-spin" />
                       ) : (
                         <Check className="size-3.5" aria-hidden="true" />
                       )}
@@ -420,17 +447,17 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                 </div>
               ) : (
                 <div className="flex items-center gap-3">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <span className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
                     <FolderOpen className="size-4.5" aria-hidden="true" />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="font-medium leading-snug">{cat.name}</p>
+                    <p className="leading-snug font-medium">{cat.name}</p>
                     {cat.description && (
-                      <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                      <p className="text-muted-foreground mt-0.5 truncate text-xs">
                         {cat.description}
                       </p>
                     )}
-                    <p className="mt-0.5 text-xs text-muted-foreground">
+                    <p className="text-muted-foreground mt-0.5 text-xs">
                       {count} {count === 1 ? 'disfraz' : 'disfraces'}
                     </p>
                   </div>
@@ -439,7 +466,7 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                       type="button"
                       size="default"
                       variant="outline"
-                      className="rounded-full size-9 justify-center p-0"
+                      className="size-9 justify-center rounded-full p-0"
                       onClick={() => startEdit(cat)}
                       disabled={isPending}
                       aria-label={`Editar categoría ${cat.name}`}
@@ -454,8 +481,8 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                             size="default"
                             variant="destructive"
                             className={cn(
-                              'rounded-full size-9 justify-center p-0',
-                              count > 0 && 'opacity-40 cursor-not-allowed',
+                              'size-9 justify-center rounded-full p-0',
+                              count > 0 && 'cursor-not-allowed opacity-40',
                             )}
                             aria-label={`Eliminar categoría ${cat.name}`}
                             disabled={count > 0 || isPending}
@@ -466,16 +493,20 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
                       />
                       <AlertDialogContent>
                         <AlertDialogHeader>
-                          <AlertDialogTitle>¿Eliminar categoría?</AlertDialogTitle>
+                          <AlertDialogTitle>
+                            ¿Eliminar categoría?
+                          </AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esto eliminará la categoría &ldquo;{cat.name}&rdquo;. Esta acción no se
-                            puede deshacer.
+                            Esto eliminará la categoría &ldquo;{cat.name}
+                            &rdquo;. Esta acción no se puede deshacer.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
                           <AlertDialogAction
-                            onClick={() => startTransition(() => handleDelete(cat.id))}
+                            onClick={() =>
+                              startTransition(() => handleDelete(cat.id))
+                            }
                             variant="destructive"
                           >
                             Eliminar
@@ -492,9 +523,9 @@ export function CategoriesManager({ initialCategories }: { initialCategories: Ca
       </div>
 
       {list.length === 0 && (
-        <div className="flex flex-col items-center gap-2 rounded-2xl bg-card py-12 text-center ring-1 ring-foreground/5 shadow-xs">
+        <div className="bg-card ring-foreground/5 flex flex-col items-center gap-2 rounded-2xl py-12 text-center shadow-xs ring-1">
           <p className="font-heading text-lg font-medium">Sin categorías</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             Añade una categoría para empezar a organizar tu catálogo.
           </p>
         </div>

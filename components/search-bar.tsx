@@ -12,31 +12,36 @@ export function SearchBar({ className }: { className?: string }) {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     const query = value.trim()
-    router.push(query ? `/costumes?q=${encodeURIComponent(query)}` : '/costumes')
+    router.push(
+      query ? `/costumes?q=${encodeURIComponent(query)}` : '/costumes',
+    )
   }
 
   return (
     <form
       onSubmit={handleSubmit}
       className={cn(
-        'flex w-full items-center gap-2 rounded-full border border-border bg-card p-2 pl-4 shadow-sm ring-1 ring-foreground/5 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent sm:pl-5',
+        'border-border bg-card ring-foreground/5 focus-within:ring-ring flex w-full items-center gap-2 rounded-full border p-2 pl-4 shadow-sm ring-1 transition-all focus-within:border-transparent focus-within:ring-2 sm:pl-5',
         className,
       )}
       role="search"
     >
-      <Search className="size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
+      <Search
+        className="text-muted-foreground size-5 shrink-0"
+        aria-hidden="true"
+      />
       <input
         type="search"
         value={value}
         onChange={(e) => setValue(e.target.value)}
         placeholder="Buscar Rumi, princesa, Spider-Man…"
         aria-label="Buscar disfraces"
-        className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground sm:text-base"
+        className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none sm:text-base"
       />
       <button
         type="submit"
         aria-label="Buscar"
-        className="flex shrink-0 items-center justify-center rounded-full bg-primary p-2.5 text-sm font-semibold text-primary-foreground transition-[background-color] hover:bg-primary/90 sm:px-5 sm:py-2.5"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 flex shrink-0 items-center justify-center rounded-full p-2.5 text-sm font-semibold transition-[background-color] sm:px-5 sm:py-2.5"
       >
         <Search className="size-4 sm:hidden" aria-hidden="true" />
         <span className="hidden sm:inline">Buscar</span>

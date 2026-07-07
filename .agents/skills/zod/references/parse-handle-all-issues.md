@@ -119,6 +119,7 @@ const form = useForm({
 ```
 
 **When NOT to use this pattern:**
+
 - Rate-limited APIs where you want to fail fast on first error
 - Large batch processing where full validation is expensive
 

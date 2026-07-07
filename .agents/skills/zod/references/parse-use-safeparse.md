@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     // Return structured error response
     return NextResponse.json(
       { error: 'Validation failed', issues: result.error.issues },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -91,10 +91,11 @@ const config = configSchema.parse(JSON.parse(process.env.CONFIG))
 expect(() => schema.parse(invalidData)).toThrow()
 
 // Schema development - see errors immediately
-schema.parse(testData)  // See what fails during development
+schema.parse(testData) // See what fails during development
 ```
 
 **When NOT to use this pattern:**
+
 - Internal configuration parsing where invalid data should crash early
 - Tests where you want exceptions to fail the test
 - Scripts where you want to see the full error

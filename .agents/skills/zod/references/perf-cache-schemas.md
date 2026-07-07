@@ -63,12 +63,13 @@ import { useMemo } from 'react'
 
 function DynamicForm({ minAge }: { minAge: number }) {
   // Schema only recreated when minAge changes
-  const userSchema = useMemo(() =>
-    z.object({
-      name: z.string().min(1),
-      age: z.number().min(minAge),
-    }),
-    [minAge]
+  const userSchema = useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1),
+        age: z.number().min(minAge),
+      }),
+    [minAge],
   )
 
   // ...
@@ -91,7 +92,7 @@ import { userSchema } from '@/schemas/user'
 
 export async function POST(req: Request) {
   const body = await req.json()
-  const result = userSchema.safeParse(body)  // Reuses cached schema
+  const result = userSchema.safeParse(body) // Reuses cached schema
   // ...
 }
 ```
@@ -108,8 +109,8 @@ function createUserSchema(role: string) {
 }
 
 // Called in hot loop
-users.forEach(user => {
-  createUserSchema(user.role).parse(user)  // New schema every iteration!
+users.forEach((user) => {
+  createUserSchema(user.role).parse(user) // New schema every iteration!
 })
 
 // GOOD: Cache by key
@@ -117,21 +118,25 @@ const schemaCache = new Map<string, z.ZodObject<any>>()
 
 function getUserSchema(role: string) {
   if (!schemaCache.has(role)) {
-    schemaCache.set(role, z.object({
-      name: z.string(),
-      permissions: z.array(z.string()),
-    }))
+    schemaCache.set(
+      role,
+      z.object({
+        name: z.string(),
+        permissions: z.array(z.string()),
+      }),
+    )
   }
   return schemaCache.get(role)!
 }
 
 // Reuses cached schemas
-users.forEach(user => {
+users.forEach((user) => {
   getUserSchema(user.role).parse(user)
 })
 ```
 
 **When NOT to use this pattern:**
+
 - One-off validation where schema is used once
 - Test files where performance doesn't matter
 

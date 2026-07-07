@@ -24,9 +24,9 @@ const userSchema = z.object({
 
 // Raw form data
 const formData = {
-  name: '  John Doe  ',  // Has whitespace
-  email: 'JOHN@EXAMPLE.COM',  // Uppercase
-  config: '{"theme": "dark"}',  // JSON string, not object
+  name: '  John Doe  ', // Has whitespace
+  email: 'JOHN@EXAMPLE.COM', // Uppercase
+  config: '{"theme": "dark"}', // JSON string, not object
 }
 
 userSchema.parse(formData)
@@ -41,12 +41,12 @@ import { z } from 'zod'
 // Preprocess normalizes before validation
 const trimmedString = z.preprocess(
   (val) => (typeof val === 'string' ? val.trim() : val),
-  z.string()
+  z.string(),
 )
 
 const lowercaseEmail = z.preprocess(
   (val) => (typeof val === 'string' ? val.toLowerCase().trim() : val),
-  z.string().email()
+  z.string().email(),
 )
 
 const jsonObject = z.preprocess(
@@ -55,12 +55,12 @@ const jsonObject = z.preprocess(
       try {
         return JSON.parse(val)
       } catch {
-        return val  // Let Zod report the error
+        return val // Let Zod report the error
       }
     }
     return val
   },
-  z.object({ theme: z.string() })
+  z.object({ theme: z.string() }),
 )
 
 const userSchema = z.object({
@@ -85,35 +85,33 @@ const user = userSchema.parse(formData)
 // Trim all strings
 const trimmedString = z.preprocess(
   (val) => (typeof val === 'string' ? val.trim() : val),
-  z.string()
+  z.string(),
 )
 
 // Parse numeric strings
 const numericString = z.preprocess(
   (val) => (typeof val === 'string' ? Number(val) : val),
-  z.number()
+  z.number(),
 )
 
 // Parse boolean-like values
-const booleanLike = z.preprocess(
-  (val) => {
-    if (val === 'true' || val === '1' || val === 1) return true
-    if (val === 'false' || val === '0' || val === 0) return false
-    return val
-  },
-  z.boolean()
-)
+const booleanLike = z.preprocess((val) => {
+  if (val === 'true' || val === '1' || val === 1) return true
+  if (val === 'false' || val === '0' || val === 0) return false
+  return val
+}, z.boolean())
 
 // Parse date strings
 const dateString = z.preprocess(
   (val) => (typeof val === 'string' ? new Date(val) : val),
-  z.date()
+  z.date(),
 )
 
 // Split comma-separated strings into arrays
 const csvArray = z.preprocess(
-  (val) => (typeof val === 'string' ? val.split(',').map(s => s.trim()) : val),
-  z.array(z.string())
+  (val) =>
+    typeof val === 'string' ? val.split(',').map((s) => s.trim()) : val,
+  z.array(z.string()),
 )
 ```
 
@@ -122,11 +120,11 @@ const csvArray = z.preprocess(
 ```typescript
 // preprocess() runs BEFORE type checking
 // Use for: Normalizing input format before validation
-z.preprocess(val => String(val).trim(), z.string().min(1))
+z.preprocess((val) => String(val).trim(), z.string().min(1))
 
 // transform() runs AFTER type checking
 // Use for: Converting validated data to different format
-z.string().transform(s => s.toUpperCase())
+z.string().transform((s) => s.toUpperCase())
 
 // Order of operations:
 // 1. preprocess receives raw unknown input
@@ -135,6 +133,7 @@ z.string().transform(s => s.toUpperCase())
 ```
 
 **When NOT to use this pattern:**
+
 - When `.coerce` methods handle the conversion (simpler)
 - When transformation should happen after validation (use transform)
 - When normalization could hide validation errors

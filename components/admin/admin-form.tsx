@@ -15,8 +15,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { createCostumeAction, updateCostumeAction } from '@/app/admin/actions/costume-actions'
-import { uploadImageAction, deleteImageAction } from '@/app/admin/actions/upload-actions'
+import {
+  createCostumeAction,
+  updateCostumeAction,
+} from '@/app/admin/actions/costume-actions'
+import {
+  uploadImageAction,
+  deleteImageAction,
+} from '@/app/admin/actions/upload-actions'
 import { toast } from 'sonner'
 
 function slugify(text: string) {
@@ -78,50 +84,69 @@ type GalleryItem = {
 export function AdminForm({ costume, categories }: AdminFormProps) {
   const router = useRouter()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  
+
   const [categoryId, setCategoryId] = useState(costume?.categoryId ?? '')
   const [audience, setAudience] = useState(
-    costume?.audience === 'Kids' ? 'KIDS' : costume?.audience === 'Adults' ? 'ADULTS' : 'ALL'
+    costume?.audience === 'Kids'
+      ? 'KIDS'
+      : costume?.audience === 'Adults'
+        ? 'ADULTS'
+        : 'ALL',
   )
   const [published, setPublished] = useState(costume?.published ?? true)
   const [featured, setFeatured] = useState(costume?.featured ?? false)
 
-  const [priceMin, setPriceMin] = useState(costume?.priceMin ? String(costume.priceMin) : '')
-  const [priceMax, setPriceMax] = useState(costume?.priceMax ? String(costume.priceMax) : '')
-  
+  const [priceMin, setPriceMin] = useState(
+    costume?.priceMin ? String(costume.priceMin) : '',
+  )
+  const [priceMax, setPriceMax] = useState(
+    costume?.priceMax ? String(costume.priceMax) : '',
+  )
+
   const [isPending, startTransition] = useTransition()
 
   // Galería unificada para manejar imágenes de base de datos y archivos locales pendientes
-  const [gallery, setGallery] = useState<GalleryItem[]>(() => 
-    costume?.images.map(img => ({ id: img.id, url: img.url, key: img.key })) ?? []
+  const [gallery, setGallery] = useState<GalleryItem[]>(
+    () =>
+      costume?.images.map((img) => ({
+        id: img.id,
+        url: img.url,
+        key: img.key,
+      })) ?? [],
   )
 
   // Sincronizar galería si cambia el disfraz
   useEffect(() => {
     if (costume) {
-      setGallery(costume.images.map(img => ({ id: img.id, url: img.url, key: img.key })))
+      setGallery(
+        costume.images.map((img) => ({
+          id: img.id,
+          url: img.url,
+          key: img.key,
+        })),
+      )
     }
   }, [costume])
 
   // Mostrar solo las imágenes que no han sido marcadas para borrar
-  const visibleImages = gallery.filter(item => !item.isDeleted)
+  const visibleImages = gallery.filter((item) => !item.isDeleted)
 
   function handleFiles(files: FileList | null) {
     if (!files) return
     const newItems = Array.from(files).map((file) => ({
       url: URL.createObjectURL(file),
-      file
+      file,
     }))
     setGallery((prev) => [...prev, ...newItems])
   }
 
   function removePreview(url: string) {
-    const index = gallery.findIndex(item => item.url === url)
+    const index = gallery.findIndex((item) => item.url === url)
     if (index === -1) return
 
     const updated = [...gallery]
     const itemToRemove = updated[index]
-    
+
     // Marcar como eliminada
     updated[index] = { ...itemToRemove, isDeleted: true }
     setGallery(updated)
@@ -134,8 +159,8 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
           const restored = [...updated]
           restored[index] = { ...itemToRemove, isDeleted: false }
           setGallery(restored)
-        }
-      }
+        },
+      },
     })
   }
 
@@ -151,7 +176,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
 
     startTransition(async () => {
       // 1. Subir nuevos archivos locales a R2 en paralelo
-      const newItems = gallery.filter(item => item.file && !item.isDeleted)
+      const newItems = gallery.filter((item) => item.file && !item.isDeleted)
       const uploadedList: { url: string; key: string }[] = []
       const uploadedKeys: string[] = []
 
@@ -190,19 +215,21 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
       }
 
       // 2. Eliminar de R2 los archivos que fueron borrados (solo existentes de BD)
-      const deletedItems = gallery.filter(item => item.isDeleted && item.key)
+      const deletedItems = gallery.filter((item) => item.isDeleted && item.key)
       for (const item of deletedItems) {
         await deleteImageAction(item.key!)
       }
 
       // 3. Crear lista final de imágenes
       const finalImages = [
-        ...gallery.filter(item => item.key && !item.isDeleted).map(item => ({
-          id: item.id,
-          url: item.url,
-          key: item.key!
-        })),
-        ...uploadedList
+        ...gallery
+          .filter((item) => item.key && !item.isDeleted)
+          .map((item) => ({
+            id: item.id,
+            url: item.url,
+            key: item.key!,
+          })),
+        ...uploadedList,
       ]
 
       // 4. Agregar campos adicionales al FormData pre-capturado
@@ -219,7 +246,11 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
         : await createCostumeAction(submissionData)
 
       if (res.success) {
-        toast.success(costume ? 'Disfraz actualizado exitosamente' : 'Disfraz creado exitosamente')
+        toast.success(
+          costume
+            ? 'Disfraz actualizado exitosamente'
+            : 'Disfraz creado exitosamente',
+        )
         router.push('/admin')
         router.refresh()
       } else {
@@ -238,8 +269,8 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
         {/* Col 1-2: campos principales */}
         <div className="flex flex-col gap-5 lg:col-span-2">
           {/* Details card */}
-          <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <h2 className="mb-4 font-heading text-lg font-medium">Detalles</h2>
+          <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
+            <h2 className="font-heading mb-4 text-lg font-medium">Detalles</h2>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="name">Nombre del disfraz</Label>
@@ -258,9 +289,12 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                   <Label htmlFor="category-select">Categoría</Label>
                   <Select
                     value={categoryId}
-                    onValueChange={setCategoryId}
+                    onValueChange={(val) => setCategoryId(val || '')}
                     disabled={isPending}
-                    items={categories.map((c) => ({ label: c.name, value: c.id }))}
+                    items={categories.map((c) => ({
+                      label: c.name,
+                      value: c.id,
+                    }))}
                   >
                     <SelectTrigger id="category-select" className="w-full">
                       <SelectValue placeholder="Selecciona categoría" />
@@ -278,7 +312,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                   <Label htmlFor="audience-select">Público</Label>
                   <Select
                     value={audience}
-                    onValueChange={setAudience}
+                    onValueChange={(val) => setAudience(val || 'ALL')}
                     disabled={isPending}
                     items={[
                       { label: 'Niños', value: 'KIDS' },
@@ -326,14 +360,18 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
           </div>
 
           {/* Prices and tags */}
-          <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <h2 className="mb-4 font-heading text-lg font-medium">Precios y etiquetas</h2>
+          <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
+            <h2 className="font-heading mb-4 text-lg font-medium">
+              Precios y etiquetas
+            </h2>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
                 <Label>Rango de precios</Label>
                 <div className="flex items-center gap-2">
-                  <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-background px-2.5 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
-                    <span className="shrink-0 text-xs text-muted-foreground">$ mín.</span>
+                  <div className="border-border bg-background focus-within:ring-ring flex h-10 min-w-0 flex-1 items-center gap-1 rounded-lg border px-2.5 transition-all focus-within:border-transparent focus-within:ring-2">
+                    <span className="text-muted-foreground shrink-0 text-xs">
+                      $ mín.
+                    </span>
                     <input
                       name="priceMin"
                       type="number"
@@ -345,12 +383,16 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                       required
                       disabled={isPending}
                       aria-label="Precio mínimo en USD"
-                      className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
+                      className="placeholder:text-muted-foreground w-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none"
                     />
                   </div>
-                  <span className="shrink-0 text-muted-foreground text-sm">—</span>
-                  <div className="flex min-w-0 flex-1 items-center gap-1 rounded-lg border border-border bg-background px-2.5 h-10 focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent transition-all">
-                    <span className="shrink-0 text-xs text-muted-foreground">$ máx.</span>
+                  <span className="text-muted-foreground shrink-0 text-sm">
+                    —
+                  </span>
+                  <div className="border-border bg-background focus-within:ring-ring flex h-10 min-w-0 flex-1 items-center gap-1 rounded-lg border px-2.5 transition-all focus-within:border-transparent focus-within:ring-2">
+                    <span className="text-muted-foreground shrink-0 text-xs">
+                      $ máx.
+                    </span>
                     <input
                       name="priceMax"
                       type="number"
@@ -362,15 +404,19 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                       required
                       disabled={isPending}
                       aria-label="Precio máximo en USD"
-                      className="min-w-0 w-full flex-1 bg-transparent text-sm outline-none tabular-nums placeholder:text-muted-foreground"
+                      className="placeholder:text-muted-foreground w-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none"
                     />
                   </div>
                 </div>
-                <p className="text-xs text-muted-foreground">El símbolo $ USD ya está incluido.</p>
+                <p className="text-muted-foreground text-xs">
+                  El símbolo $ USD ya está incluido.
+                </p>
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="estimatedTime">Tiempo estimado de confección</Label>
+                <Label htmlFor="estimatedTime">
+                  Tiempo estimado de confección
+                </Label>
                 <Input
                   id="estimatedTime"
                   name="estimatedTime"
@@ -390,28 +436,38 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                   placeholder="tul, alas, hecho a mano"
                   disabled={isPending}
                 />
-                <p className="text-xs text-muted-foreground">Separa las etiquetas con comas.</p>
+                <p className="text-muted-foreground text-xs">
+                  Separa las etiquetas con comas.
+                </p>
               </div>
             </div>
           </div>
 
           {/* Visibility toggles */}
-          <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <h2 className="mb-4 font-heading text-lg font-medium">Visibilidad</h2>
+          <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
+            <h2 className="font-heading mb-4 text-lg font-medium">
+              Visibilidad
+            </h2>
             <div className="flex flex-col gap-4">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex min-w-0 flex-col gap-0.5">
                   <div className="flex items-center gap-2">
                     {published ? (
-                      <Eye className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                      <Eye
+                        className="text-primary size-4 shrink-0"
+                        aria-hidden="true"
+                      />
                     ) : (
-                      <EyeOff className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                      <EyeOff
+                        className="text-muted-foreground size-4 shrink-0"
+                        aria-hidden="true"
+                      />
                     )}
                     <span className="text-sm font-medium">
                       {published ? 'Publicado' : 'Borrador'}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {published
                       ? 'Visible en el catálogo público.'
                       : 'Solo visible en el panel de administración.'}
@@ -436,7 +492,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                       {featured ? 'Destacado' : 'No destacado'}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {featured
                       ? 'Aparece en la sección de destacados del inicio.'
                       : 'No aparece como destacado en el inicio.'}
@@ -455,20 +511,20 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
 
         {/* Col 3: subir imágenes y acciones */}
         <div className="flex flex-col gap-5">
-          <div className="rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <h2 className="mb-4 font-heading text-lg font-medium">Imágenes</h2>
+          <div className="bg-card ring-foreground/5 rounded-2xl p-5 shadow-xs ring-1">
+            <h2 className="font-heading mb-4 text-lg font-medium">Imágenes</h2>
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isPending}
               aria-label="Subir imágenes"
-              className="flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed border-border p-6 text-center transition-colors hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+              className="border-border hover:border-primary/50 hover:bg-muted/50 focus-visible:ring-ring flex w-full flex-col items-center gap-2 rounded-2xl border-2 border-dashed p-6 text-center transition-colors focus-visible:ring-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <span className="flex size-11 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <span className="bg-primary/10 text-primary flex size-11 items-center justify-center rounded-full">
                 <UploadCloud className="size-5" aria-hidden="true" />
               </span>
               <span className="text-sm font-medium">Subir imágenes</span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-muted-foreground text-xs">
                 PNG o JPG, arrastra o haz clic para buscar
               </span>
             </button>
@@ -488,7 +544,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                 {visibleImages.map((img, i) => (
                   <div
                     key={`${img.url}-${i}`}
-                    className="group relative aspect-square overflow-hidden rounded-xl bg-muted ring-1 ring-foreground/10"
+                    className="group bg-muted ring-foreground/10 relative aspect-square overflow-hidden rounded-xl ring-1"
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
@@ -501,7 +557,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                       onClick={() => removePreview(img.url)}
                       disabled={isPending}
                       aria-label={`Eliminar imagen ${i + 1}`}
-                      className="absolute right-1 top-1 flex size-7 items-center justify-center rounded-full bg-background/90 text-foreground shadow-sm transition-all sm:opacity-0 sm:group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
+                      className="bg-background/90 text-foreground focus-visible:ring-ring absolute top-1 right-1 flex size-7 items-center justify-center rounded-full shadow-sm transition-all focus-visible:opacity-100 focus-visible:ring-2 focus-visible:outline-none sm:opacity-0 sm:group-hover:opacity-100"
                     >
                       <X className="size-3.5" aria-hidden="true" />
                     </button>
@@ -512,11 +568,16 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
           </div>
 
           {/* Actions */}
-          <div className="flex flex-col gap-3 rounded-2xl bg-card p-5 ring-1 ring-foreground/5 shadow-xs">
-            <Button type="submit" size="lg" className="w-full rounded-full" disabled={isPending}>
+          <div className="bg-card ring-foreground/5 flex flex-col gap-3 rounded-2xl p-5 shadow-xs ring-1">
+            <Button
+              type="submit"
+              size="lg"
+              className="w-full rounded-full"
+              disabled={isPending}
+            >
               {isPending ? (
                 <>
-                  <Loader2 className="size-4 animate-spin mr-2" /> Guardando...
+                  <Loader2 className="mr-2 size-4 animate-spin" /> Guardando...
                 </>
               ) : costume ? (
                 'Guardar cambios'

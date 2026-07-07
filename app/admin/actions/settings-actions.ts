@@ -7,9 +7,16 @@ import prisma from '@/lib/db'
 import { verifySession } from '@/lib/auth'
 
 const settingsSchema = z.object({
-  whatsappNumber: z.string().min(1, 'El número de WhatsApp es requerido').regex(/^\d+$/, 'El número de WhatsApp solo debe contener dígitos'),
+  whatsappNumber: z
+    .string()
+    .min(1, 'El número de WhatsApp es requerido')
+    .regex(/^\d+$/, 'El número de WhatsApp solo debe contener dígitos'),
   messengerHandle: z.string().min(1, 'El usuario de Messenger es requerido'),
-  instagramHandle: z.string().transform(val => val.trim() === '' ? null : val).nullable().optional(),
+  instagramHandle: z
+    .string()
+    .transform((val) => (val.trim() === '' ? null : val))
+    .nullable()
+    .optional(),
 })
 
 async function checkAuth() {

@@ -27,13 +27,13 @@ export const userSchema = z.object({
 import { userSchema } from '@/schemas/user'
 import type { z } from 'zod'
 
-type User = z.infer<typeof userSchema>  // Repeated everywhere
+type User = z.infer<typeof userSchema> // Repeated everywhere
 
 // components/UserCard.tsx
 import { userSchema } from '@/schemas/user'
 import type { z } from 'zod'
 
-type User = z.infer<typeof userSchema>  // Same boilerplate again
+type User = z.infer<typeof userSchema> // Same boilerplate again
 ```
 
 **Correct (exporting schema and type):**
@@ -54,7 +54,7 @@ export type User = z.infer<typeof userSchema>
 // For schemas with transforms, export both
 export const apiUserSchema = z.object({
   id: z.string(),
-  created_at: z.string().transform(s => new Date(s)),
+  created_at: z.string().transform((s) => new Date(s)),
 })
 
 export type ApiUserInput = z.input<typeof apiUserSchema>
@@ -105,11 +105,12 @@ export const userSchema = z.object({
 export type User = z.infer<typeof userSchema>
 
 // Access enum values
-UserRole.options  // ['admin', 'user', 'guest']
-UserRole.enum.admin  // 'admin'
+UserRole.options // ['admin', 'user', 'guest']
+UserRole.enum.admin // 'admin'
 ```
 
 **When NOT to use this pattern:**
+
 - Internal schemas that won't be used outside the module
 - Transient schemas used only for validation (not as types)
 

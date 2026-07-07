@@ -103,13 +103,14 @@ z.safeParse(schema, data)
 
 **Bundle size comparison:**
 
-| Package | Gzipped Size | Use Case |
-|---------|--------------|----------|
-| `zod@3` | ~13kb | Legacy, stable |
-| `zod@4` | ~17kb | Full features |
-| `@zod/mini` | ~1.9kb | Bundle-critical |
+| Package     | Gzipped Size | Use Case        |
+| ----------- | ------------ | --------------- |
+| `zod@3`     | ~13kb        | Legacy, stable  |
+| `zod@4`     | ~17kb        | Full features   |
+| `@zod/mini` | ~1.9kb       | Bundle-critical |
 
 **When NOT to use this pattern:**
+
 - Server-side applications (bundle size irrelevant)
 - When method chaining ergonomics are preferred
 - Complex schemas that benefit from full API

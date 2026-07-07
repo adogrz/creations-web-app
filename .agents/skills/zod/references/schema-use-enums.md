@@ -16,8 +16,8 @@ import { z } from 'zod'
 
 const orderSchema = z.object({
   id: z.string(),
-  status: z.string(),  // Accepts any string
-  priority: z.string(),  // No constraints
+  status: z.string(), // Accepts any string
+  priority: z.string(), // No constraints
 })
 
 type Order = z.infer<typeof orderSchema>
@@ -26,12 +26,13 @@ type Order = z.infer<typeof orderSchema>
 // Typos and invalid values pass validation
 orderSchema.parse({
   id: '123',
-  status: 'pendng',  // Typo passes
-  priority: 'super-urgent',  // Invalid value passes
+  status: 'pendng', // Typo passes
+  priority: 'super-urgent', // Invalid value passes
 })
 
 function processOrder(order: Order) {
-  if (order.status === 'pending') {  // Might never match due to typos
+  if (order.status === 'pending') {
+    // Might never match due to typos
     // ...
   }
 }
@@ -57,13 +58,13 @@ type Order = z.infer<typeof orderSchema>
 // Typos are caught at validation
 orderSchema.parse({
   id: '123',
-  status: 'pendng',  // ZodError: Invalid enum value
-  priority: 'super-urgent',  // ZodError: Invalid enum value
+  status: 'pendng', // ZodError: Invalid enum value
+  priority: 'super-urgent', // ZodError: Invalid enum value
 })
 
 // Extract enum values for reuse
-OrderStatus.options  // ['pending', 'processing', 'shipped', 'delivered']
-type OrderStatusType = z.infer<typeof OrderStatus>  // 'pending' | 'processing' | ...
+OrderStatus.options // ['pending', 'processing', 'shipped', 'delivered']
+type OrderStatusType = z.infer<typeof OrderStatus> // 'pending' | 'processing' | ...
 ```
 
 **For native TypeScript enums:**
@@ -101,6 +102,7 @@ const response = z.discriminatedUnion('status', [
 ```
 
 **When NOT to use this pattern:**
+
 - When the set of valid values is dynamic or user-defined
 - When values come from a database that may have more options
 

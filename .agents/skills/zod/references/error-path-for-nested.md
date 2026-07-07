@@ -22,10 +22,12 @@ const orderSchema = z.object({
       city: z.string().min(1, 'City required'),
     }),
   }),
-  items: z.array(z.object({
-    productId: z.string(),
-    quantity: z.number().positive('Quantity must be positive'),
-  })),
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().positive('Quantity must be positive'),
+    }),
+  ),
 })
 
 const result = orderSchema.safeParse({
@@ -35,8 +37,8 @@ const result = orderSchema.safeParse({
 
 if (!result.success) {
   // Only showing message, not WHERE the error is
-  result.error.issues.forEach(issue => {
-    console.log(issue.message)  // 'Name required', 'Street required', 'Quantity must be positive'
+  result.error.issues.forEach((issue) => {
+    console.log(issue.message) // 'Name required', 'Street required', 'Quantity must be positive'
     // User: "Which quantity? Which field?"
   })
 }
@@ -55,10 +57,12 @@ const orderSchema = z.object({
       city: z.string().min(1, 'City required'),
     }),
   }),
-  items: z.array(z.object({
-    productId: z.string(),
-    quantity: z.number().positive('Quantity must be positive'),
-  })),
+  items: z.array(
+    z.object({
+      productId: z.string(),
+      quantity: z.number().positive('Quantity must be positive'),
+    }),
+  ),
 })
 
 const result = orderSchema.safeParse({
@@ -67,7 +71,7 @@ const result = orderSchema.safeParse({
 })
 
 if (!result.success) {
-  result.error.issues.forEach(issue => {
+  result.error.issues.forEach((issue) => {
     // path is an array of keys/indices
     console.log(`${issue.path.join('.')}: ${issue.message}`)
     // 'customer.name: Name required'
@@ -95,8 +99,8 @@ function mapErrorsToFields(error: z.ZodError) {
 
 // Usage
 const errors = mapErrorsToFields(result.error)
-errors.get('customer.name')  // ['Name required']
-errors.get('items.0.quantity')  // ['Quantity must be positive']
+errors.get('customer.name') // ['Name required']
+errors.get('items.0.quantity') // ['Quantity must be positive']
 ```
 
 **For array items, get index from path:**
@@ -104,7 +108,7 @@ errors.get('items.0.quantity')  // ['Quantity must be positive']
 ```typescript
 const itemsWithErrors: Set<number> = new Set()
 
-result.error.issues.forEach(issue => {
+result.error.issues.forEach((issue) => {
   if (issue.path[0] === 'items' && typeof issue.path[1] === 'number') {
     itemsWithErrors.add(issue.path[1])
   }
@@ -119,11 +123,12 @@ result.error.issues.forEach(issue => {
 const formatted = result.error.format()
 
 // Access errors at any path level
-formatted.customer?.address?.city?._errors  // ['City required']
-formatted.items?.[0]?.quantity?._errors  // ['Quantity must be positive']
+formatted.customer?.address?.city?._errors // ['City required']
+formatted.items?.[0]?.quantity?._errors // ['Quantity must be positive']
 ```
 
 **When NOT to use this pattern:**
+
 - Flat objects where field name is obvious
 - When using form libraries that handle path mapping
 

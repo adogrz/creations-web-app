@@ -1,34 +1,34 @@
-import { WhatsAppIcon, MessengerIcon, InstagramIcon } from "@/components/icons";
+import { WhatsAppIcon, MessengerIcon, InstagramIcon } from '@/components/icons'
 import {
   getWhatsappLink,
   getMessengerLink,
   getInstagramLink,
-} from "@/lib/contact";
-import { cn } from "@/lib/utils";
+} from '@/lib/contact'
+import { cn } from '@/lib/utils'
 
 type ContactButtonsProps = {
   settings: {
-    whatsappNumber: string;
-    messengerHandle: string;
-    instagramHandle: string | null;
-  };
-  costumeUrl?: string;
-  className?: string;
-};
+    whatsappNumber: string
+    messengerHandle: string
+    instagramHandle: string | null
+  }
+  costumeUrl?: string
+  className?: string
+}
 
 export function ContactButtons({
   settings,
   costumeUrl,
   className,
 }: ContactButtonsProps) {
-  const whatsappUrl = getWhatsappLink(settings.whatsappNumber, costumeUrl);
-  const messengerUrl = getMessengerLink(settings.messengerHandle, costumeUrl);
-  const instagramUrl = getInstagramLink(settings.instagramHandle, costumeUrl);
+  const whatsappUrl = getWhatsappLink(settings.whatsappNumber, costumeUrl)
+  const messengerUrl = getMessengerLink(settings.messengerHandle, costumeUrl)
+  const instagramUrl = getInstagramLink(settings.instagramHandle, costumeUrl)
 
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:justify-center sm:items-center",
+        'flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-center',
         className,
       )}
     >
@@ -36,7 +36,7 @@ export function ContactButtons({
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center justify-center gap-2 rounded-full bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground transition-[background-color] hover:bg-primary/90 sm:w-auto"
+        className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-[background-color] sm:w-auto"
       >
         <WhatsAppIcon className="size-5" />
         Chatear por WhatsApp
@@ -45,9 +45,9 @@ export function ContactButtons({
         href={messengerUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-[background-color,color,border-color] hover:bg-muted sm:w-auto"
+        className="border-border bg-background text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-[background-color,color,border-color] sm:w-auto"
       >
-        <MessengerIcon className="size-5 text-primary" />
+        <MessengerIcon className="text-primary size-5" />
         Mensaje por Messenger
       </a>
       {instagramUrl && (
@@ -55,12 +55,12 @@ export function ContactButtons({
           href={instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center justify-center gap-2 rounded-full border border-border bg-background px-6 py-3 text-sm font-semibold text-foreground transition-[background-color,color,border-color] hover:bg-muted sm:w-auto"
+          className="border-border bg-background text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-[background-color,color,border-color] sm:w-auto"
         >
-          <InstagramIcon className="size-5 text-primary" />
+          <InstagramIcon className="text-primary size-5" />
           DM en Instagram
         </a>
       )}
     </div>
-  );
+  )
 }

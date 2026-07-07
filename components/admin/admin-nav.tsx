@@ -3,14 +3,31 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
-import { LayoutGrid, PlusCircle, Shirt, ArrowLeft, FolderOpen, Settings } from 'lucide-react'
+import {
+  LayoutGrid,
+  PlusCircle,
+  Shirt,
+  ArrowLeft,
+  FolderOpen,
+  Settings,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const items = [
   { href: '/admin', label: 'Panel', icon: LayoutGrid, exact: true },
   { href: '/admin/costumes', label: 'Disfraces', icon: Shirt, exact: false },
-  { href: '/admin/categories', label: 'Categorías', icon: FolderOpen, exact: false },
-  { href: '/admin/costumes/new', label: 'Nuevo', icon: PlusCircle, exact: false },
+  {
+    href: '/admin/categories',
+    label: 'Categorías',
+    icon: FolderOpen,
+    exact: false,
+  },
+  {
+    href: '/admin/costumes/new',
+    label: 'Nuevo',
+    icon: PlusCircle,
+    exact: false,
+  },
   { href: '/admin/settings', label: 'Config.', icon: Settings, exact: false },
 ]
 
@@ -23,7 +40,9 @@ export function AdminNav() {
     // Check if there is another item that also matches and has a longer href
     const hasBetterMatch = items.some((item) => {
       if (item.href === href) return false
-      const itemMatches = item.exact ? pathname === item.href : pathname.startsWith(item.href)
+      const itemMatches = item.exact
+        ? pathname === item.href
+        : pathname.startsWith(item.href)
       return itemMatches && item.href.length > href.length
     })
 
@@ -33,21 +52,27 @@ export function AdminNav() {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r border-border bg-sidebar p-5 md:flex" aria-label="Admin sidebar">
+      <aside
+        className="border-border bg-sidebar sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r p-5 md:flex"
+        aria-label="Admin sidebar"
+      >
         <Link href="/admin" className="flex items-center gap-2">
-          <div className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary">
+          <div className="bg-primary flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-full">
             <Image
               src="/creations-logo.webp"
               alt="Creations logo"
               width={32}
               height={32}
-              className="object-cover size-full"
+              className="size-full object-cover"
             />
           </div>
           <span className="font-heading text-lg font-semibold">Studio</span>
         </Link>
 
-        <nav className="mt-8 flex flex-col gap-1" aria-label="Admin sidebar navigation">
+        <nav
+          className="mt-8 flex flex-col gap-1"
+          aria-label="Admin sidebar navigation"
+        >
           {items.map((item) => (
             <Link
               key={item.href}
@@ -64,11 +89,13 @@ export function AdminNav() {
             </Link>
           ))}
         </nav>
-        
       </aside>
 
       {/* Mobile bottom nav — includes all items + back + logout */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-background/95 backdrop-blur-md md:hidden" aria-label="Admin bottom navigation">
+      <nav
+        className="border-border bg-background/95 fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-md md:hidden"
+        aria-label="Admin bottom navigation"
+      >
         <div className="flex">
           {items.map((item) => (
             <Link
@@ -85,7 +112,6 @@ export function AdminNav() {
               {item.label}
             </Link>
           ))}
-
         </div>
       </nav>
     </>

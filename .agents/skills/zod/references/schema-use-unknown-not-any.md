@@ -16,7 +16,7 @@ import { z } from 'zod'
 
 const eventSchema = z.object({
   type: z.string(),
-  payload: z.any(),  // Infers to 'any'
+  payload: z.any(), // Infers to 'any'
 })
 
 type Event = z.infer<typeof eventSchema>
@@ -24,7 +24,7 @@ type Event = z.infer<typeof eventSchema>
 
 function handleEvent(event: Event) {
   // No type error - TypeScript allows anything
-  console.log(event.payload.foo.bar.baz)  // Runtime crash if structure is wrong
+  console.log(event.payload.foo.bar.baz) // Runtime crash if structure is wrong
 }
 ```
 
@@ -35,7 +35,7 @@ import { z } from 'zod'
 
 const eventSchema = z.object({
   type: z.string(),
-  payload: z.unknown(),  // Infers to 'unknown'
+  payload: z.unknown(), // Infers to 'unknown'
 })
 
 type Event = z.infer<typeof eventSchema>
@@ -43,7 +43,7 @@ type Event = z.infer<typeof eventSchema>
 
 function handleEvent(event: Event) {
   // TypeScript error: Object is of type 'unknown'
-  console.log(event.payload.foo)  // Won't compile
+  console.log(event.payload.foo) // Won't compile
 
   // Must narrow type first
   if (typeof event.payload === 'object' && event.payload !== null) {
@@ -82,6 +82,7 @@ const eventSchema = z.discriminatedUnion('type', [
 ```
 
 **When NOT to use this pattern:**
+
 - When you're consuming a third-party API where you truly don't know the shape
 - When prototyping and will add proper types later
 

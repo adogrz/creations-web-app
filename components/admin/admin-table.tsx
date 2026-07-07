@@ -4,7 +4,16 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useMemo, useState, useEffect, useTransition } from 'react'
-import { Search, Pencil, Trash2, PlusCircle, Eye, EyeOff, Star, Loader2 } from 'lucide-react'
+import {
+  Search,
+  Pencil,
+  Trash2,
+  PlusCircle,
+  Eye,
+  EyeOff,
+  Star,
+  Loader2,
+} from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -68,7 +77,8 @@ export function AdminTable({
     const q = query.trim().toLowerCase()
     return list.filter((c) => {
       const matchesQuery = !q || c.name.toLowerCase().includes(q)
-      const matchesCategory = categoryFilter === 'all' || c.categorySlug === categoryFilter
+      const matchesCategory =
+        categoryFilter === 'all' || c.categorySlug === categoryFilter
       return matchesQuery && matchesCategory
     })
   }, [list, query, categoryFilter])
@@ -89,33 +99,38 @@ export function AdminTable({
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-background h-10 sm:h-8 pl-4 w-full sm:w-64 transition-all focus-within:ring-2 focus-within:ring-ring focus-within:border-transparent">
-            <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <div className="border-border bg-background focus-within:ring-ring flex h-10 w-full items-center gap-2 rounded-full border pl-4 transition-all focus-within:border-transparent focus-within:ring-2 sm:h-8 sm:w-64">
+            <Search
+              className="text-muted-foreground size-4 shrink-0"
+              aria-hidden="true"
+            />
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Buscar disfraces…"
               aria-label="Buscar disfraces"
-              className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-sm outline-none"
             />
           </div>
           <select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
             aria-label="Filtrar por categoría"
-            className="h-10 sm:h-8 rounded-full border border-border bg-background px-3 text-sm text-foreground outline-none focus:ring-2 focus:ring-ring w-full sm:w-auto cursor-pointer"
+            className="border-border bg-background text-foreground focus:ring-ring h-10 w-full cursor-pointer rounded-full border px-3 text-sm outline-none focus:ring-2 sm:h-8 sm:w-auto"
           >
             <option value="all">Todas las categorías</option>
             {initialCategories.map((cat) => (
-              <option key={cat.slug} value={cat.slug}>{cat.name}</option>
+              <option key={cat.slug} value={cat.slug}>
+                {cat.name}
+              </option>
             ))}
           </select>
         </div>
         <Button
           nativeButton={false}
           render={<Link href="/admin/costumes/new" />}
-          className="rounded-full h-10 w-full sm:h-8 sm:w-auto justify-center px-4 sm:px-3 text-sm sm:text-xs"
+          className="h-10 w-full justify-center rounded-full px-4 text-sm sm:h-8 sm:w-auto sm:px-3 sm:text-xs"
           data-icon="inline-start"
         >
           <PlusCircle aria-hidden="true" />
@@ -128,9 +143,9 @@ export function AdminTable({
         {filtered.map((costume) => (
           <div
             key={costume.id}
-            className="flex items-center gap-3 rounded-xl bg-card p-3 ring-1 ring-foreground/5 shadow-xs"
+            className="bg-card ring-foreground/5 flex items-center gap-3 rounded-xl p-3 shadow-xs ring-1"
           >
-            <div className="relative size-14 shrink-0 overflow-hidden rounded-lg bg-muted">
+            <div className="bg-muted relative size-14 shrink-0 overflow-hidden rounded-lg">
               <Image
                 src={costume.images[0] || '/placeholder.svg'}
                 alt={costume.name}
@@ -140,23 +155,31 @@ export function AdminTable({
               />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-medium text-sm leading-snug">{costume.name}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {costume.categoryName} · <span className="tabular-nums font-semibold text-primary">{costume.priceRange}</span>
+              <p className="truncate text-sm leading-snug font-medium">
+                {costume.name}
+              </p>
+              <p className="text-muted-foreground mt-0.5 text-xs">
+                {costume.categoryName} ·{' '}
+                <span className="text-primary font-semibold tabular-nums">
+                  {costume.priceRange}
+                </span>
               </p>
               <div className="mt-1.5 flex items-center gap-1.5">
                 {costume.published ? (
                   <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-medium text-green-700">
-                    <Eye className="size-2.5" />Publicado
+                    <Eye className="size-2.5" />
+                    Publicado
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                    <EyeOff className="size-2.5" />Borrador
+                  <span className="bg-muted text-muted-foreground inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                    <EyeOff className="size-2.5" />
+                    Borrador
                   </span>
                 )}
                 {costume.featured && (
-                  <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-medium text-primary">
-                    <Star className="size-2.5" />Destacado
+                  <span className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium">
+                    <Star className="size-2.5" />
+                    Destacado
                   </span>
                 )}
               </div>
@@ -165,7 +188,7 @@ export function AdminTable({
               <Button
                 size="default"
                 variant="outline"
-                className="rounded-full size-10 justify-center p-0"
+                className="size-10 justify-center rounded-full p-0"
                 nativeButton={false}
                 render={<Link href={`/admin/costumes/${costume.slug}/edit`} />}
                 aria-label={`Editar ${costume.name}`}
@@ -179,7 +202,7 @@ export function AdminTable({
                     <Button
                       size="default"
                       variant="destructive"
-                      className="rounded-full size-10 justify-center p-0"
+                      className="size-10 justify-center rounded-full p-0"
                       aria-label={`Eliminar ${costume.name}`}
                       disabled={isPending}
                     >
@@ -191,12 +214,16 @@ export function AdminTable({
                   <AlertDialogHeader>
                     <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Esto eliminará permanentemente el disfraz &ldquo;{costume.name}&rdquo;. Esta acción no se puede deshacer.
+                      Esto eliminará permanentemente el disfraz &ldquo;
+                      {costume.name}&rdquo;. Esta acción no se puede deshacer.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleDelete(costume.id)} variant="destructive">
+                    <AlertDialogAction
+                      onClick={() => handleDelete(costume.id)}
+                      variant="destructive"
+                    >
                       Eliminar
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -208,10 +235,10 @@ export function AdminTable({
       </div>
 
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-2xl bg-card ring-1 ring-foreground/5 shadow-xs sm:block">
+      <div className="bg-card ring-foreground/5 hidden overflow-hidden rounded-2xl shadow-xs ring-1 sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-border text-left text-muted-foreground">
+            <tr className="border-border text-muted-foreground border-b text-left">
               <th className="p-4 font-medium">Disfraz</th>
               <th className="p-4 font-medium">Categoría</th>
               <th className="p-4 font-medium">Estado</th>
@@ -224,11 +251,11 @@ export function AdminTable({
             {filtered.map((costume) => (
               <tr
                 key={costume.id}
-                className="border-b border-border last:border-0"
+                className="border-border border-b last:border-0"
               >
                 <td className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="relative size-12 shrink-0 overflow-hidden rounded-lg bg-muted">
+                    <div className="bg-muted relative size-12 shrink-0 overflow-hidden rounded-lg">
                       <Image
                         src={costume.images[0] || '/placeholder.svg'}
                         alt={costume.name}
@@ -241,31 +268,32 @@ export function AdminTable({
                   </div>
                 </td>
                 <td className="p-4">
-                  <Badge variant="secondary">
-                    {costume.categoryName}
-                  </Badge>
+                  <Badge variant="secondary">{costume.categoryName}</Badge>
                 </td>
                 <td className="p-4">
                   {costume.published ? (
                     <span className="inline-flex items-center gap-1.5 rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-700">
-                      <Eye className="size-3" />Publicado
+                      <Eye className="size-3" />
+                      Publicado
                     </span>
                   ) : (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                      <EyeOff className="size-3" />Borrador
+                    <span className="bg-muted text-muted-foreground inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+                      <EyeOff className="size-3" />
+                      Borrador
                     </span>
                   )}
                 </td>
                 <td className="p-4">
                   {costume.featured ? (
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-2.5 py-1 text-xs font-medium text-primary">
-                      <Star className="size-3" />Sí
+                    <span className="bg-primary/10 text-primary inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium">
+                      <Star className="size-3" />
+                      Sí
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <span className="text-muted-foreground text-xs">—</span>
                   )}
                 </td>
-                <td className="p-4 text-muted-foreground tabular-nums">
+                <td className="text-muted-foreground p-4 tabular-nums">
                   {costume.priceRange}
                 </td>
                 <td className="p-4">
@@ -275,7 +303,9 @@ export function AdminTable({
                       variant="outline"
                       aria-label={`Editar ${costume.name}`}
                       nativeButton={false}
-                      render={<Link href={`/admin/costumes/${costume.slug}/edit`} />}
+                      render={
+                        <Link href={`/admin/costumes/${costume.slug}/edit`} />
+                      }
                       disabled={isPending}
                     >
                       <Pencil aria-hidden="true" />
@@ -297,12 +327,17 @@ export function AdminTable({
                         <AlertDialogHeader>
                           <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                           <AlertDialogDescription>
-                            Esto eliminará permanentemente el disfraz &ldquo;{costume.name}&rdquo;. Esta acción no se puede deshacer.
+                            Esto eliminará permanentemente el disfraz &ldquo;
+                            {costume.name}&rdquo;. Esta acción no se puede
+                            deshacer.
                           </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                           <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                          <AlertDialogAction onClick={() => handleDelete(costume.id)} variant="destructive">
+                          <AlertDialogAction
+                            onClick={() => handleDelete(costume.id)}
+                            variant="destructive"
+                          >
                             Eliminar
                           </AlertDialogAction>
                         </AlertDialogFooter>
@@ -319,11 +354,13 @@ export function AdminTable({
       {filtered.length === 0 && (
         <div
           className={cn(
-            'flex flex-col items-center gap-2 rounded-2xl bg-card py-12 text-center ring-1 ring-foreground/5 shadow-xs',
+            'bg-card ring-foreground/5 flex flex-col items-center gap-2 rounded-2xl py-12 text-center shadow-xs ring-1',
           )}
         >
-          <p className="font-heading text-lg font-medium">No se encontraron disfraces</p>
-          <p className="text-sm text-muted-foreground">
+          <p className="font-heading text-lg font-medium">
+            No se encontraron disfraces
+          </p>
+          <p className="text-muted-foreground text-sm">
             Prueba con una búsqueda distinta o añade un nuevo disfraz.
           </p>
         </div>

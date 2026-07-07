@@ -23,24 +23,24 @@ const userSchema = z.object({
 // Controller validates
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const user = userSchema.parse(body)  // First parse
+  const user = userSchema.parse(body) // First parse
   return await userService.create(user)
 }
 
 // Service validates again
 const userService = {
   async create(data: unknown) {
-    const user = userSchema.parse(data)  // Second parse - redundant
+    const user = userSchema.parse(data) // Second parse - redundant
     return await userRepository.insert(user)
-  }
+  },
 }
 
 // Repository validates again
 const userRepository = {
   async insert(data: unknown) {
-    const user = userSchema.parse(data)  // Third parse - wasteful
+    const user = userSchema.parse(data) // Third parse - wasteful
     return await db.users.create({ data: user })
-  }
+  },
 }
 ```
 
@@ -75,14 +75,14 @@ const userService = {
   async create(user: User) {
     // user is guaranteed to match schema
     return await userRepository.insert(user)
-  }
+  },
 }
 
 // Repository receives typed data
 const userRepository = {
   async insert(user: User) {
     return await db.users.create({ data: user })
-  }
+  },
 }
 ```
 
@@ -92,13 +92,13 @@ const userRepository = {
 // Different schemas for different layers
 const apiUserSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),  // Only in API layer
+  password: z.string().min(8), // Only in API layer
 })
 
 const dbUserSchema = z.object({
   id: z.string().uuid(),
   email: z.string().email(),
-  passwordHash: z.string(),  // Transformed before storage
+  passwordHash: z.string(), // Transformed before storage
 })
 
 // API validates input format
@@ -117,11 +117,12 @@ const userService = {
       passwordHash: await hash(input.password),
     })
     return await userRepository.insert(dbUser)
-  }
+  },
 }
 ```
 
 **When NOT to use this pattern:**
+
 - When schemas differ between layers (API vs DB shape)
 - When data crosses trust boundaries (external service response)
 - During development when debugging data flow

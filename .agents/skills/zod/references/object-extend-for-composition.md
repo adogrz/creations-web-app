@@ -21,7 +21,7 @@ const baseUserSchema = z.object({
 
 // Manual spreading loses Zod's schema relationship
 const adminUserSchema = z.object({
-  ...baseUserSchema.shape,  // Accessing internal .shape
+  ...baseUserSchema.shape, // Accessing internal .shape
   role: z.literal('admin'),
   permissions: z.array(z.string()),
 })
@@ -60,7 +60,7 @@ type AdminUser = z.infer<typeof adminUserSchema>
 
 // Override existing fields
 const strictEmailSchema = baseUserSchema.extend({
-  email: z.string().email().endsWith('@company.com'),  // Stricter validation
+  email: z.string().email().endsWith('@company.com'), // Stricter validation
 })
 ```
 
@@ -90,10 +90,12 @@ const productSchema = entitySchema.extend({
 // Order extends entity with references
 const orderSchema = entitySchema.extend({
   userId: z.string().uuid(),
-  items: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().int().positive(),
-  })),
+  items: z.array(
+    z.object({
+      productId: z.string().uuid(),
+      quantity: z.number().int().positive(),
+    }),
+  ),
   total: z.number().positive(),
 })
 ```
@@ -108,18 +110,14 @@ const baseSchema = z.object({
 })
 
 // Create input: no id, add password
-const createSchema = baseSchema
-  .omit({ id: true })
-  .extend({
-    password: z.string().min(8),
-  })
+const createSchema = baseSchema.omit({ id: true }).extend({
+  password: z.string().min(8),
+})
 
 // Update input: all optional except id
-const updateSchema = baseSchema
-  .partial()
-  .extend({
-    id: z.string(),  // Override to make required
-  })
+const updateSchema = baseSchema.partial().extend({
+  id: z.string(), // Override to make required
+})
 ```
 
 **Merge for combining independent schemas:**
@@ -141,6 +139,7 @@ const customerSchema = addressSchema.merge(contactSchema)
 ```
 
 **When NOT to use this pattern:**
+
 - When schemas are genuinely independent (use merge or intersection)
 - When you need to remove fields (use omit)
 

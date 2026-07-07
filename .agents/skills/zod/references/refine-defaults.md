@@ -34,7 +34,7 @@ function createClient(config: Config) {
 function createOtherClient(config: Config) {
   // Same defaults duplicated - risk of inconsistency
   const timeout = config.timeout ?? 5000
-  const retries = config.retries ?? 3  // What if someone uses 2 here?
+  const retries = config.retries ?? 3 // What if someone uses 2 here?
   const debug = config.debug ?? false
 
   // ...
@@ -58,9 +58,9 @@ type Config = z.infer<typeof configSchema>
 
 function createClient(config: Config) {
   // config.timeout is guaranteed to exist
-  console.log(config.timeout)  // 5000 if not provided
-  console.log(config.retries)  // 3 if not provided
-  console.log(config.debug)    // false if not provided
+  console.log(config.timeout) // 5000 if not provided
+  console.log(config.retries) // 3 if not provided
+  console.log(config.debug) // false if not provided
 }
 
 // Parse fills in defaults
@@ -103,8 +103,8 @@ const schema2 = z.object({
 })
 
 // Each parse creates new values
-schema2.parse({})  // { id: 'abc-123...', createdAt: 2024-01-15... }
-schema2.parse({})  // { id: 'def-456...', createdAt: 2024-01-15... }
+schema2.parse({}) // { id: 'abc-123...', createdAt: 2024-01-15... }
+schema2.parse({}) // { id: 'def-456...', createdAt: 2024-01-15... }
 ```
 
 **Combining with optional/nullable:**
@@ -125,6 +125,7 @@ z.string().nullish().default('fallback')
 ```
 
 **When NOT to use this pattern:**
+
 - When absence of value has different meaning than default
 - When defaults depend on other fields (use transform)
 

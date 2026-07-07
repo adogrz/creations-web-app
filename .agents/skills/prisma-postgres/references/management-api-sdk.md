@@ -21,17 +21,24 @@ npm install @prisma/management-api-sdk
 ```typescript
 import { createManagementApiClient } from '@prisma/management-api-sdk'
 
-const client = createManagementApiClient({ token: process.env.PRISMA_SERVICE_TOKEN! })
+const client = createManagementApiClient({
+  token: process.env.PRISMA_SERVICE_TOKEN!,
+})
 const { data: workspaces } = await client.GET('/v1/workspaces')
 ```
 
 ## Full SDK (OAuth + refresh)
 
 ```typescript
-import { createManagementApiSdk, type TokenStorage } from '@prisma/management-api-sdk'
+import {
+  createManagementApiSdk,
+  type TokenStorage,
+} from '@prisma/management-api-sdk'
 
 const tokenStorage: TokenStorage = {
-  async getTokens() { return null },
+  async getTokens() {
+    return null
+  },
   async setTokens(tokens) {},
   async clearTokens() {},
 }

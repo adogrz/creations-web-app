@@ -17,12 +17,12 @@ const config = JSON.parse(fs.readFileSync('config.json', 'utf-8'))
 // config is 'any' - TypeScript allows anything
 
 // This might crash at runtime if structure changed
-console.log(config.database.host)  // TypeError: Cannot read property 'host' of undefined
+console.log(config.database.host) // TypeError: Cannot read property 'host' of undefined
 
 // API response - also unvalidated
 const response = await fetch('/api/user')
-const user = await response.json()  // any type
-console.log(user.name.toUpperCase())  // Crash if name is null/undefined
+const user = await response.json() // any type
+console.log(user.name.toUpperCase()) // Crash if name is null/undefined
 ```
 
 **Correct (validate after JSON.parse):**
@@ -88,10 +88,12 @@ const config = parseJSON(configSchema, fs.readFileSync('config.json', 'utf-8'))
 **Validate localStorage/sessionStorage:**
 
 ```typescript
-const cartSchema = z.array(z.object({
-  productId: z.string(),
-  quantity: z.number().int().positive(),
-}))
+const cartSchema = z.array(
+  z.object({
+    productId: z.string(),
+    quantity: z.number().int().positive(),
+  }),
+)
 
 function getCart() {
   const raw = localStorage.getItem('cart')
@@ -108,6 +110,7 @@ function getCart() {
 ```
 
 **When NOT to use this pattern:**
+
 - When you genuinely need to pass through arbitrary JSON without processing
 
 Reference: [Zod API - parse](https://zod.dev/api#parse)

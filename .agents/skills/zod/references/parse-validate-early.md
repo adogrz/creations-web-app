@@ -29,7 +29,7 @@ async function processOrder(data: unknown) {
 
 async function calculateTotals(data: unknown) {
   // Finally validating way too late
-  const order = orderSchema.parse(data)  // Throws here, far from entry point
+  const order = orderSchema.parse(data) // Throws here, far from entry point
   // ...
 }
 // Hard to trace where bad data came from
@@ -42,10 +42,14 @@ import { z } from 'zod'
 
 const orderSchema = z.object({
   customerId: z.string().uuid(),
-  items: z.array(z.object({
-    productId: z.string(),
-    quantity: z.number().int().positive(),
-  })).min(1),
+  items: z
+    .array(
+      z.object({
+        productId: z.string(),
+        quantity: z.number().int().positive(),
+      }),
+    )
+    .min(1),
   shippingAddress: z.object({
     street: z.string(),
     city: z.string(),
@@ -63,7 +67,7 @@ export async function POST(req: NextRequest) {
   if (!result.success) {
     return NextResponse.json(
       { error: 'Invalid order', issues: result.error.issues },
-      { status: 400 }
+      { status: 400 },
     )
   }
 
@@ -80,7 +84,7 @@ async function processOrder(order: Order) {
 
 async function calculateTotals(order: Order) {
   // No validation needed - type guarantees shape
-  return order.items.map(item => ({
+  return order.items.map((item) => ({
     ...item,
     total: item.quantity * getPrice(item.productId),
   }))
@@ -114,6 +118,7 @@ const users = usersResponseSchema.parse(data)
 ```
 
 **When NOT to use this pattern:**
+
 - Internal function calls with already-validated data
 - Performance-critical hot paths (validate once, trust afterward)
 

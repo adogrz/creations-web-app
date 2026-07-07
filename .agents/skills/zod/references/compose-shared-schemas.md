@@ -26,23 +26,25 @@ const userSchema = z.object({
 import { z } from 'zod'
 
 const orderSchema = z.object({
-  id: z.string().uuid(),  // Duplicated
-  userId: z.string().uuid(),  // Same pattern
-  items: z.array(z.object({
-    productId: z.string().uuid(),  // Duplicated
-    quantity: z.number().int().positive(),
-  })),
-  createdAt: z.date(),  // Duplicated
+  id: z.string().uuid(), // Duplicated
+  userId: z.string().uuid(), // Same pattern
+  items: z.array(
+    z.object({
+      productId: z.string().uuid(), // Duplicated
+      quantity: z.number().int().positive(),
+    }),
+  ),
+  createdAt: z.date(), // Duplicated
 })
 
 // api/comments.ts
 import { z } from 'zod'
 
 const commentSchema = z.object({
-  id: z.string().uuid(),  // Same duplication
+  id: z.string().uuid(), // Same duplication
   userId: z.string().uuid(),
   content: z.string().min(1),
-  createdAt: z.date(),  // Inconsistency risk
+  createdAt: z.date(), // Inconsistency risk
 })
 ```
 
@@ -63,9 +65,11 @@ export const timestamps = z.object({
 })
 
 // Base entity with ID
-export const baseEntity = z.object({
-  id: uuid,
-}).merge(timestamps)
+export const baseEntity = z
+  .object({
+    id: uuid,
+  })
+  .merge(timestamps)
 
 export type BaseEntity = z.infer<typeof baseEntity>
 
@@ -131,6 +135,7 @@ import { userSchema, orderSchema, uuid, type User } from '@/schemas'
 ```
 
 **When NOT to use this pattern:**
+
 - One-off schemas used only in a single file
 - When schemas look similar but have different semantics (don't over-abstract)
 

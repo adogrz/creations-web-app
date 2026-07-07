@@ -57,8 +57,8 @@ type UpdateUser = z.infer<typeof updateUserSchema>
 // { name?: string; email?: string; age?: number; role?: 'admin' | 'user' }
 
 // Validate partial updates
-updateUserSchema.parse({ email: 'new@example.com' })  // Valid
-updateUserSchema.parse({})  // Valid - all fields optional
+updateUserSchema.parse({ email: 'new@example.com' }) // Valid
+updateUserSchema.parse({}) // Valid - all fields optional
 ```
 
 **Partial specific fields only:**
@@ -117,6 +117,7 @@ const updateSchema = baseSchema.partial().omit({ id: true, createdAt: true })
 ```
 
 **When NOT to use this pattern:**
+
 - When update logic differs significantly from create (different validations)
 - When using GraphQL with explicit input types
 

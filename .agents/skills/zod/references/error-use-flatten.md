@@ -80,7 +80,10 @@ if (!result.success) {
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-const { register, formState: { errors } } = useForm({
+const {
+  register,
+  formState: { errors },
+} = useForm({
   resolver: zodResolver(formSchema),
 })
 
@@ -120,11 +123,12 @@ if (!result.success) {
   // }
 
   // Access nested errors naturally
-  formatted.profile?.name?._errors  // ['Name required']
+  formatted.profile?.name?._errors // ['Name required']
 }
 ```
 
 **When NOT to use this pattern:**
+
 - When you need access to full issue metadata (code, path as array)
 - When using a form library that expects different error format
 

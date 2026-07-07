@@ -17,9 +17,9 @@ import { z } from 'zod'
 const userSchema = z.object({
   name: z.string(),
   // Intended: field might not exist
-  nickname: z.string().nullable(),  // Wrong! Requires field to be present
+  nickname: z.string().nullable(), // Wrong! Requires field to be present
   // Intended: field exists but might be null
-  deletedAt: z.date().optional(),  // Wrong! Allows field to be missing
+  deletedAt: z.date().optional(), // Wrong! Allows field to be missing
 })
 
 // This fails - nickname is required
@@ -49,7 +49,7 @@ const userSchema = z.object({
 })
 
 // Field can be omitted
-userSchema.parse({ name: 'John', deletedAt: null })  // Valid
+userSchema.parse({ name: 'John', deletedAt: null }) // Valid
 
 // Field must be present (even if null)
 userSchema.parse({ name: 'John', nickname: 'Johnny' })
@@ -58,8 +58,8 @@ userSchema.parse({ name: 'John', nickname: 'Johnny' })
 // Correct usage
 userSchema.parse({
   name: 'John',
-  nickname: 'Johnny',  // Or omit entirely
-  deletedAt: null,  // Must be present, null means "not deleted"
+  nickname: 'Johnny', // Or omit entirely
+  deletedAt: null, // Must be present, null means "not deleted"
 })
 ```
 
@@ -69,22 +69,22 @@ userSchema.parse({
 // optional() - field may not exist
 // Use for: Optional form fields, sparse updates, optional config
 z.object({
-  bio: z.string().optional(),  // User might not have filled this
-  middleName: z.string().optional(),  // Not everyone has one
+  bio: z.string().optional(), // User might not have filled this
+  middleName: z.string().optional(), // Not everyone has one
 })
 
 // nullable() - field exists but value can be null
 // Use for: Database nullable columns, "cleared" values, explicit absence
 z.object({
-  deletedAt: z.date().nullable(),  // null = not deleted, Date = when deleted
-  parentId: z.string().nullable(),  // null = root node, string = has parent
-  approvedBy: z.string().nullable(),  // null = pending, string = approver
+  deletedAt: z.date().nullable(), // null = not deleted, Date = when deleted
+  parentId: z.string().nullable(), // null = root node, string = has parent
+  approvedBy: z.string().nullable(), // null = pending, string = approver
 })
 
 // nullish() - either undefined or null
 // Use for: Lenient APIs, legacy data, optional nullable DB columns
 z.object({
-  legacyField: z.string().nullish(),  // string | null | undefined
+  legacyField: z.string().nullish(), // string | null | undefined
 })
 ```
 
@@ -94,10 +94,12 @@ z.object({
 // API includes null for "no value" (good for explicit absence)
 const apiResponseSchema = z.object({
   data: z.object({
-    user: z.object({
-      name: z.string(),
-      avatar: z.string().nullable(),  // null = no avatar set
-    }).nullable(),  // null = user not found
+    user: z
+      .object({
+        name: z.string(),
+        avatar: z.string().nullable(), // null = no avatar set
+      })
+      .nullable(), // null = user not found
   }),
 })
 
@@ -105,12 +107,13 @@ const apiResponseSchema = z.object({
 
 // Partial updates send only changed fields
 const updateSchema = z.object({
-  name: z.string().optional(),  // Omitted = don't change
-  avatar: z.string().nullable().optional(),  // null = clear avatar
+  name: z.string().optional(), // Omitted = don't change
+  avatar: z.string().nullable().optional(), // null = clear avatar
 })
 ```
 
 **When NOT to use this pattern:**
+
 - When interacting with systems that treat null and undefined as equivalent
 - When using nullish() for maximum flexibility is acceptable
 

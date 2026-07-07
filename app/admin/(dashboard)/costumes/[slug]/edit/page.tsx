@@ -14,7 +14,7 @@ export default async function EditCostumePage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  
+
   const [costume, categories] = await Promise.all([
     getCostumeBySlug(slug),
     prisma.category.findMany({
@@ -33,19 +33,27 @@ export default async function EditCostumePage({
     slug: costume.slug,
     categoryId: costume.categoryId,
     categorySlug: costume.category?.slug || '',
-    audience: costume.audience === 'KIDS' ? 'Kids' : costume.audience === 'ADULTS' ? 'Adults' : 'All ages',
+    audience:
+      costume.audience === 'KIDS'
+        ? 'Kids'
+        : costume.audience === 'ADULTS'
+          ? 'Adults'
+          : 'All ages',
     shortDescription: costume.shortDescription,
     description: costume.description,
     priceMin: costume.priceMin,
     priceMax: costume.priceMax,
-    priceRange: costume.priceMin === costume.priceMax ? `$${costume.priceMin}` : `$${costume.priceMin} – $${costume.priceMax}`,
+    priceRange:
+      costume.priceMin === costume.priceMax
+        ? `$${costume.priceMin}`
+        : `$${costume.priceMin} – $${costume.priceMax}`,
     creationTime: costume.estimatedTime,
     tags: costume.tags,
-    images: costume.images.map(img => ({
+    images: costume.images.map((img) => ({
       id: img.id,
       url: img.url,
       key: img.key,
-      alt: img.alt
+      alt: img.alt,
     })),
     featured: costume.featured,
     published: costume.published,
@@ -54,8 +62,10 @@ export default async function EditCostumePage({
   return (
     <div className="mx-auto max-w-3xl">
       <div className="mb-8">
-        <h1 className="font-serif text-2xl text-foreground sm:text-3xl">Editar disfraz</h1>
-        <p className="mt-1 text-muted-foreground">
+        <h1 className="text-foreground font-serif text-2xl sm:text-3xl">
+          Editar disfraz
+        </h1>
+        <p className="text-muted-foreground mt-1">
           Actualiza los detalles de {costume.name}.
         </p>
       </div>

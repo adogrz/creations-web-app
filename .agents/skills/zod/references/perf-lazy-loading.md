@@ -16,12 +16,17 @@ For applications with many complex schemas, importing all of them upfront increa
 export * from './user'
 export * from './order'
 export * from './product'
-export * from './analytics'  // Large, complex schema
-export * from './reports'    // Another large schema
-export * from './admin'      // Admin-only schemas
+export * from './analytics' // Large, complex schema
+export * from './reports' // Another large schema
+export * from './admin' // Admin-only schemas
 
 // app/page.tsx
-import { userSchema, orderSchema, analyticsSchema, reportsSchema } from '@/schemas'
+import {
+  userSchema,
+  orderSchema,
+  analyticsSchema,
+  reportsSchema,
+} from '@/schemas'
 // All schemas loaded even if not used on this page
 ```
 
@@ -104,10 +109,10 @@ export default function ReportsForm() {
 ```typescript
 // schemas/registry.ts
 const schemaLoaders = {
-  user: () => import('./user').then(m => m.userSchema),
-  order: () => import('./order').then(m => m.orderSchema),
-  analytics: () => import('./analytics').then(m => m.analyticsSchema),
-  reports: () => import('./reports').then(m => m.reportsSchema),
+  user: () => import('./user').then((m) => m.userSchema),
+  order: () => import('./order').then((m) => m.orderSchema),
+  analytics: () => import('./analytics').then((m) => m.analyticsSchema),
+  reports: () => import('./reports').then((m) => m.reportsSchema),
 } as const
 
 type SchemaName = keyof typeof schemaLoaders
@@ -128,6 +133,7 @@ schema.parse(data)
 ```
 
 **When NOT to use this pattern:**
+
 - Server-side rendering where all code is available
 - Small applications with few schemas
 - Schemas used on every page (defeats purpose)

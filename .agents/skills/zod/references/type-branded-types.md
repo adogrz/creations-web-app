@@ -17,15 +17,15 @@ import { z } from 'zod'
 const userIdSchema = z.string().uuid()
 const orderIdSchema = z.string().uuid()
 
-type UserId = z.infer<typeof userIdSchema>  // string
-type OrderId = z.infer<typeof orderIdSchema>  // string - same type!
+type UserId = z.infer<typeof userIdSchema> // string
+type OrderId = z.infer<typeof orderIdSchema> // string - same type!
 
 async function getOrder(orderId: OrderId) {
   return db.orders.findUnique({ where: { id: orderId } })
 }
 
 const userId: UserId = '550e8400-e29b-41d4-a716-446655440000'
-getOrder(userId)  // No error! TypeScript allows this bug
+getOrder(userId) // No error! TypeScript allows this bug
 // Runtime: queries orders table with user ID, returns nothing or wrong data
 ```
 
@@ -48,10 +48,10 @@ async function getOrder(orderId: OrderId) {
 }
 
 const userId = userIdSchema.parse('550e8400-e29b-41d4-a716-446655440000')
-getOrder(userId)  // TypeScript error: Argument of type 'UserId' is not assignable to parameter of type 'OrderId'
+getOrder(userId) // TypeScript error: Argument of type 'UserId' is not assignable to parameter of type 'OrderId'
 
 const orderId = orderIdSchema.parse('660e8400-e29b-41d4-a716-446655440001')
-getOrder(orderId)  // Works correctly
+getOrder(orderId) // Works correctly
 ```
 
 **Common branded types:**
@@ -72,7 +72,10 @@ const PositiveInt = z.number().int().positive().brand<'PositiveInt'>()
 const Cents = z.number().int().nonnegative().brand<'Cents'>()
 
 // Slugs
-const Slug = z.string().regex(/^[a-z0-9-]+$/).brand<'Slug'>()
+const Slug = z
+  .string()
+  .regex(/^[a-z0-9-]+$/)
+  .brand<'Slug'>()
 ```
 
 **Using with object schemas:**
@@ -88,13 +91,14 @@ type User = z.infer<typeof User>
 
 function sendReferralBonus(
   referrerId: z.infer<typeof User>['id'],
-  refereeId: z.infer<typeof User>['id']
+  refereeId: z.infer<typeof User>['id'],
 ) {
   // Can't accidentally swap these - both are UserId but distinct values
 }
 ```
 
 **When NOT to use this pattern:**
+
 - Simple applications without ID confusion risk
 - When interoperating with external systems that expect plain strings
 - Performance-critical paths (brand adds tiny overhead)
