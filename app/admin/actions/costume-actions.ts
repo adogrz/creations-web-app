@@ -235,6 +235,26 @@ export async function updateCostumeAction(formData: FormData) {
 
     // Guardar actualización mediante transacción
     await prisma.$transaction(async (tx) => {
+      const currentCostume = await tx.costume.findUnique({
+        where: { id },
+        select: { slug: true },
+      })
+      const oldSlug = currentCostume?.slug
+
+      if (oldSlug && oldSlug !== slug) {
+        // Eliminar cualquier redirección que apunte al nuevo slug para evitar bucles
+        await tx.slugRedirect.deleteMany({
+          where: { oldSlug: slug },
+        })
+
+        // Crear o actualizar la redirección del slug anterior
+        await tx.slugRedirect.upsert({
+          where: { oldSlug },
+          update: { costumeId: id },
+          create: { oldSlug, costumeId: id },
+        })
+      }
+
       await tx.costume.update({
         where: { id },
         data: {

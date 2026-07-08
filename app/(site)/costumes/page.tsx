@@ -3,8 +3,19 @@ import { CatalogView } from '@/components/catalog-view'
 import { getCategories, getCostumes } from '@/lib/queries'
 
 export const metadata: Metadata = {
-  title: 'Catálogo — Creations',
-  description: 'Explora nuestro catálogo completo de disfraces hechos a mano.',
+  title: 'Catálogo',
+  description:
+    'Explora nuestro catálogo completo de disfraces hechos a mano. Diseños exclusivos y personalizados para niños y adultos en El Salvador.',
+  alternates: {
+    canonical: '/costumes',
+  },
+  openGraph: {
+    type: 'website',
+    url: '/costumes',
+    title: 'Catálogo de Disfraces | Creations',
+    description:
+      'Explora nuestro catálogo completo de disfraces hechos a mano. Diseños exclusivos y personalizados para niños y adultos en El Salvador.',
+  },
 }
 
 export default async function CostumesPage({
