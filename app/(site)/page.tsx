@@ -6,6 +6,8 @@ import { CostumeCard } from '@/components/costume-card'
 import { ContactButtons } from '@/components/contact-buttons'
 import { getFeaturedCostumes, getSettings } from '@/lib/queries'
 
+export const dynamic = 'force-dynamic'
+
 const steps = [
   {
     icon: Palette,
