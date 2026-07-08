@@ -39,14 +39,8 @@ export default async function EditCostumePage({
         : costume.audience === 'ADULTS'
           ? 'Adults'
           : 'All ages',
-    shortDescription: costume.shortDescription,
     description: costume.description,
-    priceMin: costume.priceMin,
-    priceMax: costume.priceMax,
-    priceRange:
-      costume.priceMin === costume.priceMax
-        ? `$${costume.priceMin}`
-        : `$${costume.priceMin} – $${costume.priceMax}`,
+    price: costume.price,
     creationTime: costume.estimatedTime,
     tags: costume.tags,
     images: costume.images.map((img) => ({

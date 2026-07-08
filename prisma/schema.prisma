@@ -34,10 +34,8 @@ model Costume {
   id               String   @id @default(cuid())
   name             String
   slug             String   @unique
-  shortDescription String   @db.Text
-  description      String   @db.Text
-  priceMin         Int
-  priceMax         Int
+  description      String?  @db.Text
+  price            Int
   estimatedTime    String
   audience         Audience @default(ALL)
   tags             String[] @default([])

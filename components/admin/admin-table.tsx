@@ -38,10 +38,8 @@ type CostumeItem = {
   categorySlug: string
   categoryName: string
   audience: string
-  shortDescription: string
-  priceMin: number
-  priceMax: number
-  priceRange: string
+  description: string | null
+  price: number
   creationTime: string
   tags: string[]
   images: string[]
@@ -161,7 +159,7 @@ export function AdminTable({
               <p className="text-muted-foreground mt-0.5 text-xs">
                 {costume.categoryName} ·{' '}
                 <span className="text-primary font-semibold tabular-nums">
-                  {costume.priceRange}
+                  Desde ${costume.price}
                 </span>
               </p>
               <div className="mt-1.5 flex items-center gap-1.5">
@@ -294,7 +292,7 @@ export function AdminTable({
                   )}
                 </td>
                 <td className="text-muted-foreground p-4 tabular-nums">
-                  {costume.priceRange}
+                  Desde ${costume.price}
                 </td>
                 <td className="p-4">
                   <div className="flex justify-end gap-2">

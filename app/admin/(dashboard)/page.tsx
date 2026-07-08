@@ -30,13 +30,8 @@ export default async function AdminDashboardPage() {
         : c.audience === 'ADULTS'
           ? 'Adults'
           : 'All ages',
-    shortDescription: c.shortDescription,
-    priceMin: c.priceMin,
-    priceMax: c.priceMax,
-    priceRange:
-      c.priceMin === c.priceMax
-        ? `$${c.priceMin}`
-        : `$${c.priceMin} – $${c.priceMax}`,
+    description: c.description,
+    price: c.price,
     creationTime: c.estimatedTime,
     tags: c.tags,
     images: c.images.map((img) => img.url),

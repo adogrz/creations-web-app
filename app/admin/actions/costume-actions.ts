@@ -12,16 +12,11 @@ const costumeSchema = z.object({
     .string()
     .min(1, 'El nombre es requerido')
     .max(100, 'El nombre es muy largo'),
-  shortDescription: z.string().min(1, 'La descripción corta es requerida'),
-  description: z.string().min(1, 'La descripción completa es requerida'),
-  priceMin: z.coerce
+  description: z.string().optional().nullable().transform(val => val === '' ? null : val),
+  price: z.coerce
     .number()
     .int()
-    .min(0, 'El precio mínimo debe ser mayor o igual a 0'),
-  priceMax: z.coerce
-    .number()
-    .int()
-    .min(0, 'El precio máximo debe ser mayor o igual a 0'),
+    .min(0, 'El precio debe ser mayor o igual a 0'),
   estimatedTime: z.string().min(1, 'El tiempo estimado es requerido'),
   audience: z.enum(['KIDS', 'ADULTS', 'ALL']),
   categoryId: z.string().min(1, 'La categoría es requerida'),
@@ -67,10 +62,8 @@ export async function createCostumeAction(formData: FormData) {
 
   const rawData = {
     name: formData.get('name'),
-    shortDescription: formData.get('shortDescription'),
     description: formData.get('description'),
-    priceMin: formData.get('priceMin'),
-    priceMax: formData.get('priceMax'),
+    price: formData.get('price'),
     estimatedTime: formData.get('estimatedTime'),
     audience: formData.get('audience'),
     categoryId: formData.get('categoryId'),
@@ -123,10 +116,8 @@ export async function createCostumeAction(formData: FormData) {
           id: id || undefined,
           name: parsed.data.name,
           slug,
-          shortDescription: parsed.data.shortDescription,
           description: parsed.data.description,
-          priceMin: parsed.data.priceMin,
-          priceMax: parsed.data.priceMax,
+          price: parsed.data.price,
           estimatedTime: parsed.data.estimatedTime,
           audience: parsed.data.audience,
           tags: parsed.data.tags,
@@ -173,10 +164,8 @@ export async function updateCostumeAction(formData: FormData) {
 
   const rawData = {
     name: formData.get('name'),
-    shortDescription: formData.get('shortDescription'),
     description: formData.get('description'),
-    priceMin: formData.get('priceMin'),
-    priceMax: formData.get('priceMax'),
+    price: formData.get('price'),
     estimatedTime: formData.get('estimatedTime'),
     audience: formData.get('audience'),
     categoryId: formData.get('categoryId'),
@@ -250,10 +239,8 @@ export async function updateCostumeAction(formData: FormData) {
         data: {
           name: parsed.data.name,
           slug,
-          shortDescription: parsed.data.shortDescription,
           description: parsed.data.description,
-          priceMin: parsed.data.priceMin,
-          priceMax: parsed.data.priceMax,
+          price: parsed.data.price,
           estimatedTime: parsed.data.estimatedTime,
           audience: parsed.data.audience,
           tags: parsed.data.tags,
