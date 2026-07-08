@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Clock, Tag, Wallet, Users } from 'lucide-react'
+import { ArrowLeft, Clock, Tag, Wallet, Users, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ImageGallery } from '@/components/image-gallery'
 import { ContactButtons } from '@/components/contact-buttons'
@@ -40,7 +40,7 @@ export async function generateMetadata({
   if (!costume) return { title: 'Disfraz no encontrado — Creations' }
   return {
     title: `${costume.name} — Creations`,
-    description: costume.shortDescription,
+    description: costume.description || 'Disfraz personalizado hecho a mano.',
   }
 }
 
@@ -68,13 +68,10 @@ export default async function CostumeDetailPage({
     return 'Todas las edades'
   }
 
-  const priceDisplay =
-    costume.priceMin === costume.priceMax
-      ? `$${costume.priceMin}`
-      : `$${costume.priceMin} – $${costume.priceMax}`
+  const priceDisplay = `Desde $${costume.price}`
 
   const details = [
-    { icon: Wallet, label: 'Rango de precios', value: priceDisplay },
+    { icon: Wallet, label: 'Precio base', value: priceDisplay },
     {
       icon: Clock,
       label: 'Tiempo de confección',
@@ -113,9 +110,11 @@ export default async function CostumeDetailPage({
             <h1 className="font-heading text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
               {costume.name}
             </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed text-pretty">
-              {costume.description}
-            </p>
+            {costume.description && (
+              <p className="text-muted-foreground text-lg leading-relaxed text-pretty">
+                {costume.description}
+              </p>
+            )}
           </div>
 
           <dl className="grid grid-cols-2 gap-3">
@@ -150,6 +149,22 @@ export default async function CostumeDetailPage({
             ))}
           </div>
 
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
+            <span className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400">
+              <Info className="size-4" />
+            </span>
+            <div className="text-xs leading-normal text-amber-800 dark:text-amber-300">
+              <strong className="mb-0.5 block font-semibold">
+                Nota sobre el precio:
+              </strong>
+              El precio indicado es una referencia inicial. Dado que realizamos
+              confecciones personalizadas a medida, el costo final varía según
+              la talla y la cantidad de material requerido. Asimismo, los
+              diseños son adaptables si deseas añadir detalles o accesorios
+              específicos.
+            </div>
+          </div>
+
           <div className="bg-primary/5 ring-primary/15 rounded-3xl p-5 ring-1">
             <p className="text-muted-foreground mb-4 text-sm">
               ¿Te encanta esta pieza? Escríbenos para ordenarla o solicitar tu
@@ -157,7 +172,7 @@ export default async function CostumeDetailPage({
             </p>
             <ContactButtons
               settings={settings}
-              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? 'https://creations.vercel.app'}/costumes/${costume.slug}`}
+              costumeUrl={`${process.env.NEXT_PUBLIC_BASE_URL ?? ''}/costumes/${costume.slug}`}
             />
           </div>
         </div>

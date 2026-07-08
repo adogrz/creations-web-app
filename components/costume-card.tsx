@@ -5,10 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import type { Costume } from '@/lib/types'
 
 export function CostumeCard({ costume }: { costume: Costume }) {
-  const priceDisplay =
-    costume.priceMin === costume.priceMax
-      ? `$${costume.priceMin}`
-      : `$${costume.priceMin} – $${costume.priceMax}`
+  const priceDisplay = `Desde $${costume.price}`
 
   return (
     <Link
@@ -42,9 +39,11 @@ export function CostumeCard({ costume }: { costume: Costume }) {
             aria-hidden="true"
           />
         </div>
-        <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-          {costume.shortDescription}
-        </p>
+        {costume.description && (
+          <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
+            {costume.description}
+          </p>
+        )}
         <div className="text-primary flex items-center justify-between pt-1 text-xs font-semibold">
           <span className="tabular-nums">{priceDisplay}</span>
           <span className="text-muted-foreground text-[10px] font-semibold tracking-wider uppercase">

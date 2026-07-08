@@ -50,11 +50,8 @@ type FormCostume = {
   categoryId: string
   categorySlug: string
   audience: string
-  shortDescription: string
-  description: string
-  priceMin: number
-  priceMax: number
-  priceRange: string
+  description: string | null
+  price: number
   creationTime: string
   tags: string[]
   images: FormImage[]
@@ -96,11 +93,8 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
   const [published, setPublished] = useState(costume?.published ?? true)
   const [featured, setFeatured] = useState(costume?.featured ?? false)
 
-  const [priceMin, setPriceMin] = useState(
-    costume?.priceMin ? String(costume.priceMin) : '',
-  )
-  const [priceMax, setPriceMax] = useState(
-    costume?.priceMax ? String(costume.priceMax) : '',
+  const [price, setPrice] = useState(
+    costume?.price ? String(costume.price) : '',
   )
 
   const [isPending, startTransition] = useTransition()
@@ -333,26 +327,13 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
               </div>
 
               <div className="flex flex-col gap-2">
-                <Label htmlFor="shortDescription">Descripción corta</Label>
-                <Input
-                  id="shortDescription"
-                  name="shortDescription"
-                  defaultValue={costume?.shortDescription}
-                  placeholder="Un resumen de una línea mostrado en las tarjetas"
-                  required
-                  disabled={isPending}
-                />
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="description">Descripción completa</Label>
+                <Label htmlFor="description">Descripción</Label>
                 <Textarea
                   id="description"
                   name="description"
                   rows={5}
-                  defaultValue={costume?.description}
-                  placeholder="Describe los materiales, detalles y confección…"
-                  required
+                  defaultValue={costume?.description ?? ''}
+                  placeholder="Describe los materiales, detalles y confección (opcional)…"
                   disabled={isPending}
                 />
               </div>
@@ -366,50 +347,29 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
             </h2>
             <div className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label>Rango de precios</Label>
-                <div className="flex items-center gap-2">
-                  <div className="border-border bg-background focus-within:ring-ring flex h-10 min-w-0 flex-1 items-center gap-1 rounded-lg border px-2.5 transition-all focus-within:border-transparent focus-within:ring-2">
-                    <span className="text-muted-foreground shrink-0 text-xs">
-                      $ mín.
-                    </span>
-                    <input
-                      name="priceMin"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={priceMin}
-                      onChange={(e) => setPriceMin(e.target.value)}
-                      placeholder="120"
-                      required
-                      disabled={isPending}
-                      aria-label="Precio mínimo en USD"
-                      className="placeholder:text-muted-foreground w-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none"
-                    />
-                  </div>
-                  <span className="text-muted-foreground shrink-0 text-sm">
-                    —
+                <Label htmlFor="price">Precio base ($)</Label>
+                <div className="border-border bg-background focus-within:ring-ring flex h-10 min-w-0 items-center gap-1 rounded-lg border px-2.5 transition-all focus-within:border-transparent focus-within:ring-2">
+                  <span className="text-muted-foreground shrink-0 text-xs">
+                    $
                   </span>
-                  <div className="border-border bg-background focus-within:ring-ring flex h-10 min-w-0 flex-1 items-center gap-1 rounded-lg border px-2.5 transition-all focus-within:border-transparent focus-within:ring-2">
-                    <span className="text-muted-foreground shrink-0 text-xs">
-                      $ máx.
-                    </span>
-                    <input
-                      name="priceMax"
-                      type="number"
-                      min="0"
-                      step="1"
-                      value={priceMax}
-                      onChange={(e) => setPriceMax(e.target.value)}
-                      placeholder="180"
-                      required
-                      disabled={isPending}
-                      aria-label="Precio máximo en USD"
-                      className="placeholder:text-muted-foreground w-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none"
-                    />
-                  </div>
+                  <input
+                    id="price"
+                    name="price"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={price}
+                    onChange={(e) => setPrice(e.target.value)}
+                    placeholder="120"
+                    required
+                    disabled={isPending}
+                    aria-label="Precio base en USD"
+                    className="placeholder:text-muted-foreground w-full min-w-0 flex-1 bg-transparent text-sm tabular-nums outline-none"
+                  />
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  El símbolo $ USD ya está incluido.
+                  El precio mínimo o de referencia ("Desde $X"). El símbolo $
+                  USD ya está incluido.
                 </p>
               </div>
 

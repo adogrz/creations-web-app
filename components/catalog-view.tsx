@@ -31,7 +31,7 @@ export function CatalogView({
       if (!q) return true
       const haystack = [
         costume.name,
-        costume.shortDescription,
+        costume.description || '',
         ...(costume.tags || []),
       ]
         .join(' ')
