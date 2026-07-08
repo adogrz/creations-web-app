@@ -28,8 +28,36 @@ export default async function HomePage() {
   const featured = await getFeaturedCostumes(4)
   const settings = await getSettings()
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    '@id': `${process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.adogrz.com'}/#organization`,
+    name: 'Creations',
+    image: `${process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.adogrz.com'}/creations-logo.webp`,
+    url: process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.adogrz.com',
+    telephone: settings.whatsappNumber,
+    address: {
+      '@type': 'PostalAddress',
+      addressCountry: 'SV',
+      addressLocality: 'El Salvador',
+    },
+    description:
+      'Catálogo visual de disfraces personalizados hechos a mano para niños y adultos en El Salvador.',
+    priceRange: '$$',
+    sameAs: [
+      `https://m.me/${settings.messengerHandle}`,
+      settings.instagramHandle
+        ? `https://instagram.com/${settings.instagramHandle}`
+        : '',
+    ].filter(Boolean),
+  }
+
   return (
     <div className="flex flex-col gap-10 pb-4">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HomeHero />
 
       {/* Categories */}

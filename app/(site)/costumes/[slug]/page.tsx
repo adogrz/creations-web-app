@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect, RedirectType } from 'next/navigation'
 import { ArrowLeft, Clock, Tag, Wallet, Users, Info } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { ImageGallery } from '@/components/image-gallery'
@@ -37,10 +37,39 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params
   const costume = await getCostumeBySlug(slug)
-  if (!costume) return { title: 'Disfraz no encontrado — Creations' }
+  if (!costume) {
+    const redirectRecord = await prisma.slugRedirect.findUnique({
+      where: { oldSlug: slug },
+      include: { costume: { select: { slug: true } } },
+    })
+    if (redirectRecord?.costume?.slug) {
+      redirect(`/costumes/${redirectRecord.costume.slug}`, RedirectType.replace)
+    }
+    return { title: 'Disfraz no encontrado' }
+  }
+  const imageUrls = costume.images.map((img) => img.url)
+  const descriptionText =
+    costume.description ||
+    `Disfraz personalizado de ${costume.name} hecho a mano.`
   return {
-    title: `${costume.name} — Creations`,
-    description: costume.description || 'Disfraz personalizado hecho a mano.',
+    title: costume.name,
+    description: descriptionText,
+    alternates: {
+      canonical: `/costumes/${costume.slug}`,
+    },
+    openGraph: {
+      type: 'article',
+      url: `/costumes/${costume.slug}`,
+      title: `${costume.name} | Creations`,
+      description: descriptionText,
+      images: imageUrls.map((url) => ({ url, alt: costume.name })),
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${costume.name} | Creations`,
+      description: descriptionText,
+      images: imageUrls,
+    },
   }
 }
 
@@ -51,7 +80,16 @@ export default async function CostumeDetailPage({
 }) {
   const { slug } = await params
   const costume = await getCostumeBySlug(slug)
-  if (!costume) notFound()
+  if (!costume) {
+    const redirectRecord = await prisma.slugRedirect.findUnique({
+      where: { oldSlug: slug },
+      include: { costume: { select: { slug: true } } },
+    })
+    if (redirectRecord?.costume?.slug) {
+      redirect(`/costumes/${redirectRecord.costume.slug}`, RedirectType.replace)
+    }
+    notFound()
+  }
 
   const [related, settings] = await Promise.all([
     getRelatedCostumes({
@@ -89,8 +127,36 @@ export default async function CostumeDetailPage({
     },
   ]
 
+  const baseUrl =
+    process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.adogrz.com'
+  const imageUrls = costume.images.map((img) => img.url)
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Product',
+    name: costume.name,
+    image: imageUrls.length > 0 ? imageUrls : [`${baseUrl}/placeholder.svg`],
+    description:
+      costume.description ||
+      `Disfraz personalizado de ${costume.name} hecho a mano.`,
+    brand: {
+      '@type': 'Brand',
+      name: 'Creations',
+    },
+    offers: {
+      '@type': 'Offer',
+      price: costume.price,
+      priceCurrency: 'USD',
+      availability: 'https://schema.org/PreOrder',
+      url: `${baseUrl}/costumes/${costume.slug}`,
+    },
+  }
+
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <Link
         href="/costumes"
         className="text-muted-foreground hover:text-foreground inline-flex items-center gap-1.5 text-sm font-medium"

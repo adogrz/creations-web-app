@@ -5,8 +5,19 @@ import { ArrowUpRight } from 'lucide-react'
 import prisma from '@/lib/db'
 
 export const metadata: Metadata = {
-  title: 'Categorías — Creations',
-  description: 'Explora nuestras categorías de disfraces hechos a mano.',
+  title: 'Categorías',
+  description:
+    'Explora nuestras categorías de disfraces hechos a mano: fantasía, cosplay, época, personajes infantiles y más confecciones a medida.',
+  alternates: {
+    canonical: '/categories',
+  },
+  openGraph: {
+    type: 'website',
+    url: '/categories',
+    title: 'Categorías de Disfraces | Creations',
+    description:
+      'Explora nuestras categorías de disfraces hechos a mano: fantasía, cosplay, época, personajes infantiles y más confecciones a medida.',
+  },
 }
 
 export default async function CategoriesPage() {

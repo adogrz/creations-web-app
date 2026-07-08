@@ -42,10 +42,11 @@ model Costume {
   published        Boolean  @default(true)
   featured         Boolean  @default(false)
   categoryId       String
-  category         Category @relation(fields: [categoryId], references: [id])
+  category         Category       @relation(fields: [categoryId], references: [id])
   images           Image[]
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  slugRedirects    SlugRedirect[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
 
   @@index([categoryId])
   @@index([published])
@@ -76,4 +77,16 @@ model Settings {
   updatedAt       DateTime @updatedAt
 
   @@map("settings")
+}
+
+// ─── SlugRedirect ──────────────────────────────────────────
+model SlugRedirect {
+  id        String   @id @default(cuid())
+  oldSlug   String   @unique
+  costumeId String
+  costume   Costume  @relation(fields: [costumeId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@index([costumeId])
+  @@map("slug_redirects")
 }
