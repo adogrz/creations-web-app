@@ -12,11 +12,12 @@ const costumeSchema = z.object({
     .string()
     .min(1, 'El nombre es requerido')
     .max(100, 'El nombre es muy largo'),
-  description: z.string().optional().nullable().transform(val => val === '' ? null : val),
-  price: z.coerce
-    .number()
-    .int()
-    .min(0, 'El precio debe ser mayor o igual a 0'),
+  description: z
+    .string()
+    .optional()
+    .nullable()
+    .transform((val) => (val === '' ? null : val)),
+  price: z.coerce.number().int().min(0, 'El precio debe ser mayor o igual a 0'),
   estimatedTime: z.string().min(1, 'El tiempo estimado es requerido'),
   audience: z.enum(['KIDS', 'ADULTS', 'ALL']),
   categoryId: z.string().min(1, 'La categoría es requerida'),

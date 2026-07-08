@@ -368,7 +368,8 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
                   />
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  El precio mínimo o de referencia ("Desde $X"). El símbolo $ USD ya está incluido.
+                  El precio mínimo o de referencia ("Desde $X"). El símbolo $
+                  USD ya está incluido.
                 </p>
               </div>
 

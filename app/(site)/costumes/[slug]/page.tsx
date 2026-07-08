@@ -149,13 +149,19 @@ export default async function CostumeDetailPage({
             ))}
           </div>
 
-          <div className="bg-amber-50/50 border border-amber-100 dark:bg-amber-950/20 dark:border-amber-900/30 flex items-start gap-3 rounded-2xl p-4">
-            <span className="text-amber-600 dark:text-amber-400 mt-0.5 shrink-0">
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-100 bg-amber-50/50 p-4 dark:border-amber-900/30 dark:bg-amber-950/20">
+            <span className="mt-0.5 shrink-0 text-amber-600 dark:text-amber-400">
               <Info className="size-4" />
             </span>
-            <div className="text-xs text-amber-800 dark:text-amber-300 leading-normal">
-              <strong className="font-semibold block mb-0.5">Nota sobre el precio:</strong>
-              El precio indicado es una referencia inicial. Dado que realizamos confecciones personalizadas a medida, el costo final varía según la talla y la cantidad de material requerido. Asimismo, los diseños son adaptables si deseas añadir detalles o accesorios específicos.
+            <div className="text-xs leading-normal text-amber-800 dark:text-amber-300">
+              <strong className="mb-0.5 block font-semibold">
+                Nota sobre el precio:
+              </strong>
+              El precio indicado es una referencia inicial. Dado que realizamos
+              confecciones personalizadas a medida, el costo final varía según
+              la talla y la cantidad de material requerido. Asimismo, los
+              diseños son adaptables si deseas añadir detalles o accesorios
+              específicos.
             </div>
           </div>
 
