@@ -142,7 +142,7 @@ export async function createCostumeAction(formData: FormData) {
 
     revalidatePath('/')
     revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]')
+    revalidatePath('/costumes/[slug]', 'page')
     revalidatePath('/admin')
 
     return { success: true }
@@ -289,7 +289,7 @@ export async function updateCostumeAction(formData: FormData) {
 
     revalidatePath('/')
     revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]')
+    revalidatePath('/costumes/[slug]', 'page')
     revalidatePath('/admin')
 
     return { success: true }
@@ -321,7 +321,7 @@ export async function deleteCostumeAction(id: string) {
 
     revalidatePath('/')
     revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]')
+    revalidatePath('/costumes/[slug]', 'page')
     revalidatePath('/admin')
 
     return { success: true }
