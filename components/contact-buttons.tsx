@@ -13,12 +13,14 @@ type ContactButtonsProps = {
     instagramHandle: string | null
   }
   costumeUrl?: string
+  costumeSlug?: string
   className?: string
 }
 
 export function ContactButtons({
   settings,
   costumeUrl,
+  costumeSlug,
   className,
 }: ContactButtonsProps) {
   const whatsappUrl = getWhatsappLink(settings.whatsappNumber, costumeUrl)
@@ -36,6 +38,8 @@ export function ContactButtons({
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
+        data-umami-event="contact-whatsapp"
+        data-umami-event-costume={costumeSlug}
         className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold transition-[background-color] sm:w-auto"
       >
         <WhatsAppIcon className="size-5" />
@@ -45,6 +49,8 @@ export function ContactButtons({
         href={messengerUrl}
         target="_blank"
         rel="noopener noreferrer"
+        data-umami-event="contact-messenger"
+        data-umami-event-costume={costumeSlug}
         className="border-border bg-background text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-[background-color,color,border-color] sm:w-auto"
       >
         <MessengerIcon className="text-primary size-5" />
@@ -55,6 +61,8 @@ export function ContactButtons({
           href={instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
+          data-umami-event="contact-instagram"
+          data-umami-event-costume={costumeSlug}
           className="border-border bg-background text-foreground hover:bg-muted inline-flex items-center justify-center gap-2 rounded-full border px-6 py-3 text-sm font-semibold transition-[background-color,color,border-color] sm:w-auto"
         >
           <InstagramIcon className="text-primary size-5" />

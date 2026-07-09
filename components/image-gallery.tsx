@@ -9,9 +9,11 @@ import type { Image as GalleryImage } from '@/lib/types'
 export function ImageGallery({
   images,
   alt,
+  costumeSlug,
 }: {
   images: GalleryImage[]
   alt: string
+  costumeSlug?: string
 }) {
   const [active, setActive] = useState(0)
   const gallery =
@@ -31,7 +33,7 @@ export function ImageGallery({
           className="object-cover"
         />
         <div className="absolute top-3 right-3">
-          <ShareCostumeButton />
+          <ShareCostumeButton costumeSlug={costumeSlug} />
         </div>
       </div>
       {gallery.length > 1 && (

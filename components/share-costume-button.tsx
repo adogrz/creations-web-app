@@ -1,23 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { Share2, Copy, Check } from 'lucide-react'
+import { Share2, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trackEvent } from '@/lib/analytics/track-event'
 
 interface ShareCostumeButtonProps {
+  costumeSlug?: string
   className?: string
 }
 
-export function ShareCostumeButton({ className }: ShareCostumeButtonProps) {
+export function ShareCostumeButton({
+  costumeSlug,
+  className,
+}: ShareCostumeButtonProps) {
   const [copied, setCopied] = useState(false)
 
   const handleShare = async () => {
+    const slug =
+      costumeSlug ||
+      (typeof window !== 'undefined'
+        ? window.location.pathname.split('/').pop() || 'unknown'
+        : 'unknown')
+
     if (typeof navigator !== 'undefined' && navigator.share) {
       try {
         await navigator.share({
           title: document.title,
           url: typeof window !== 'undefined' ? window.location.href : '',
         })
+        trackEvent({ name: 'share-costume', data: { costume: slug } })
         return
       } catch {
         // User cancelled or share failed — fall through to clipboard
@@ -29,6 +41,7 @@ export function ShareCostumeButton({ className }: ShareCostumeButtonProps) {
       if (url) {
         await navigator.clipboard.writeText(url)
         setCopied(true)
+        trackEvent({ name: 'share-costume', data: { costume: slug } })
         setTimeout(() => setCopied(false), 2000)
       }
     } catch {

@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
 import { Geist, Geist_Mono, Fraunces } from 'next/font/google'
-import { GoogleAnalytics } from '@next/third-parties/google'
 import './globals.css'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
@@ -86,9 +85,6 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         {children}
         <Toaster />
-        {process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID && (
-          <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID} />
-        )}
       </body>
     </html>
   )

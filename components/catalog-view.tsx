@@ -1,10 +1,11 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Search, X } from 'lucide-react'
 import { CostumeCard } from '@/components/costume-card'
 import { cn } from '@/lib/utils'
 import type { Costume, Category } from '@/lib/types'
+import { trackEvent } from '@/lib/analytics/track-event'
 
 type CatalogViewProps = {
   costumes: Costume[]
@@ -21,6 +22,18 @@ export function CatalogView({
 }: CatalogViewProps) {
   const [query, setQuery] = useState(initialQuery)
   const [category, setCategory] = useState(initialCategory)
+
+  // Track search queries with debounce to avoid flooding events
+  useEffect(() => {
+    const trimmed = query.trim()
+    if (!trimmed) return
+
+    const timer = setTimeout(() => {
+      trackEvent({ name: 'catalog-search', data: { query: trimmed } })
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [query])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -82,7 +95,10 @@ export function CatalogView({
             type="button"
             role="tab"
             aria-selected={category === f.slug}
-            onClick={() => setCategory(f.slug)}
+            onClick={() => {
+              setCategory(f.slug)
+              trackEvent({ name: 'catalog-filter', data: { category: f.name } })
+            }}
             className={cn(
               'focus-visible:ring-ring shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-[color,background-color] outline-none focus-visible:ring-2',
               category === f.slug
