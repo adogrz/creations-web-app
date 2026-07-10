@@ -1,6 +1,11 @@
 import type { Metadata } from 'next'
 import { CatalogView } from '@/components/catalog-view'
-import { getCategories, getCostumes } from '@/lib/queries'
+import { normalizeCatalogSearchParams } from '@/lib/catalog-query'
+import { getCategories, getCostumePage } from '@/lib/queries'
+
+const PAGE_SIZE = 12
+
+export const dynamic = 'force-dynamic'
 
 export const metadata: Metadata = {
   title: 'Catálogo',
@@ -21,18 +26,24 @@ export const metadata: Metadata = {
 export default async function CostumesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; category?: string }>
+  searchParams: Promise<{
+    q?: string | string[]
+    category?: string | string[]
+    page?: string | string[]
+  }>
 }) {
   const params = await searchParams
-  const initialQuery = params.q ?? ''
-
   const categories = await getCategories()
-  const costumes = await getCostumes({ published: true })
-
-  const initialCategory =
-    params.category && categories.some((c) => c.slug === params.category)
-      ? params.category
-      : 'all'
+  const { category, page, query } = normalizeCatalogSearchParams(
+    params,
+    categories.map((item) => item.slug),
+  )
+  const { costumes, total } = await getCostumePage({
+    query,
+    categorySlug: category || undefined,
+    page,
+    pageSize: PAGE_SIZE,
+  })
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
@@ -48,8 +59,11 @@ export default async function CostumesPage({
       <CatalogView
         costumes={costumes}
         categories={categories}
-        initialQuery={initialQuery}
-        initialCategory={initialCategory}
+        query={query}
+        category={category}
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
       />
     </div>
   )

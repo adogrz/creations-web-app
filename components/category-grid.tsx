@@ -9,15 +9,22 @@ const layoutConfigs = [
   { span: 'md:col-span-1', aspect: 'aspect-square' },
   { span: 'md:col-span-1', aspect: 'aspect-square' },
   { span: 'md:col-span-1', aspect: 'aspect-square' },
-  { span: 'md:col-span-2', aspect: 'aspect-[1.8/1] sm:aspect-[2.1/1]' },
 ]
+
+const HOME_CATEGORY_LIMIT = 5
 
 export async function CategoryGrid({ className }: { className?: string }) {
   // Consultar categorías incluyendo el conteo de disfraces publicados
   let categoriesWithCounts: any[] = []
   try {
     categoriesWithCounts = await prisma.category.findMany({
-      orderBy: { name: 'asc' },
+      where: {
+        costumes: {
+          some: { published: true },
+        },
+      },
+      orderBy: [{ name: 'asc' }, { id: 'asc' }],
+      take: HOME_CATEGORY_LIMIT,
       include: {
         _count: {
           select: {
@@ -30,6 +37,25 @@ export async function CategoryGrid({ className }: { className?: string }) {
     })
   } catch (error) {
     console.error('Error al obtener categorías con conteos en el Grid:', error)
+  }
+
+  if (categoriesWithCounts.length === 0) {
+    return (
+      <div
+        className={cn(
+          'bg-secondary/40 flex flex-col items-center gap-3 rounded-3xl py-16 text-center',
+          className,
+        )}
+        role="status"
+      >
+        <p className="font-heading text-xl font-medium">
+          Aún no hay categorías disponibles
+        </p>
+        <p className="text-muted-foreground max-w-xs text-sm">
+          Vuelve pronto para descubrir nuevas creaciones.
+        </p>
+      </div>
+    )
   }
 
   return (
@@ -51,7 +77,7 @@ export async function CategoryGrid({ className }: { className?: string }) {
           >
             <div
               className={cn(
-                'bg-muted ring-foreground/5 relative w-full overflow-hidden rounded-[2rem] ring-1',
+                'bg-muted ring-foreground/5 relative w-full overflow-hidden rounded-4xl ring-1',
                 config.aspect,
               )}
             >
@@ -60,7 +86,7 @@ export async function CategoryGrid({ className }: { className?: string }) {
                 alt={category.name}
                 fill
                 sizes="(max-width: 640px) 100vw, 50vw"
-                className="object-cover transition-transform duration-300 group-hover:scale-102"
+                className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-102"
               />
             </div>
             <div className="mt-3.5 flex items-start justify-between gap-4 px-2">

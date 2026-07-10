@@ -10,7 +10,7 @@ export function CostumeCard({ costume }: { costume: Costume }) {
   return (
     <Link
       href={`/costumes/${costume.slug}`}
-      className="group flex flex-col transition-all duration-300"
+      className="group flex flex-col transition-[color] duration-300"
     >
       <div className="bg-muted ring-foreground/5 relative aspect-4/5 overflow-hidden rounded-4xl ring-1">
         <Image
@@ -18,7 +18,7 @@ export function CostumeCard({ costume }: { costume: Costume }) {
           alt={costume.images[0]?.alt || costume.name}
           fill
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover transition-transform duration-300 group-hover:scale-102"
+          className="object-cover motion-safe:transition-transform motion-safe:duration-300 motion-safe:group-hover:scale-102"
         />
         <div className="absolute top-4 left-4">
           <Badge

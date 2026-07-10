@@ -27,8 +27,10 @@ const steps = [
 ]
 
 export default async function HomePage() {
-  const featured = await getFeaturedCostumes(4)
-  const settings = await getSettings()
+  const [featured, settings] = await Promise.all([
+    getFeaturedCostumes(4),
+    getSettings(),
+  ])
 
   const jsonLd = {
     '@context': 'https://schema.org',
@@ -75,9 +77,9 @@ export default async function HomePage() {
           </div>
           <Link
             href="/categories"
-            className="text-primary hidden shrink-0 items-center gap-1 font-serif text-sm font-medium italic hover:underline sm:flex"
+            className="text-primary flex shrink-0 items-center gap-1 font-serif text-sm font-medium italic hover:underline"
           >
-            Ver todo
+            Ver todas
             <ArrowRight className="size-4" />
           </Link>
         </div>
@@ -103,11 +105,25 @@ export default async function HomePage() {
             <ArrowRight className="size-4" />
           </Link>
         </div>
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {featured.map((costume) => (
-            <CostumeCard key={costume.slug} costume={costume} />
-          ))}
-        </div>
+        {featured.length > 0 ? (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {featured.map((costume) => (
+              <CostumeCard key={costume.slug} costume={costume} />
+            ))}
+          </div>
+        ) : (
+          <div
+            className="bg-secondary/40 flex flex-col items-center gap-3 rounded-3xl py-16 text-center"
+            role="status"
+          >
+            <p className="font-heading text-xl font-medium">
+              Aún no hay creaciones destacadas
+            </p>
+            <p className="text-muted-foreground max-w-xs text-sm">
+              Explora el catálogo para descubrir todas las creaciones.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* How it works */}

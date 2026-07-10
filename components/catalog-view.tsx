@@ -1,147 +1,182 @@
-'use client'
-
-import { useMemo, useState, useEffect } from 'react'
-import { Search, X } from 'lucide-react'
+import Link from 'next/link'
+import { Search } from 'lucide-react'
 import { CostumeCard } from '@/components/costume-card'
+import { Button, buttonVariants } from '@/components/ui/button'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from '@/components/ui/pagination'
+import type { Category, Costume } from '@/lib/types'
+import { getCatalogHref, getPageItems } from '@/lib/catalog-navigation'
 import { cn } from '@/lib/utils'
-import type { Costume, Category } from '@/lib/types'
-import { trackEvent } from '@/lib/analytics/track-event'
 
 type CatalogViewProps = {
   costumes: Costume[]
   categories: Category[]
-  initialQuery?: string
-  initialCategory?: string
+  query: string
+  category: string
+  page: number
+  pageSize: number
+  total: number
 }
 
 export function CatalogView({
   costumes,
   categories,
-  initialQuery = '',
-  initialCategory = 'all',
+  query,
+  category,
+  page,
+  pageSize,
+  total,
 }: CatalogViewProps) {
-  const [query, setQuery] = useState(initialQuery)
-  const [category, setCategory] = useState(initialCategory)
-
-  // Track search queries with debounce to avoid flooding events
-  useEffect(() => {
-    const trimmed = query.trim()
-    if (!trimmed) return
-
-    const timer = setTimeout(() => {
-      trackEvent({ name: 'catalog-search', data: { query: trimmed } })
-    }, 1000)
-
-    return () => clearTimeout(timer)
-  }, [query])
-
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return costumes.filter((costume) => {
-      const matchesCategory =
-        category === 'all' || costume.category?.slug === category
-      if (!matchesCategory) return false
-      if (!q) return true
-      const haystack = [
-        costume.name,
-        costume.description || '',
-        ...(costume.tags || []),
-      ]
-        .join(' ')
-        .toLowerCase()
-      return haystack.includes(q)
-    })
-  }, [query, category, costumes])
-
-  const filters = [{ slug: 'all', name: 'Todos' }, ...categories]
+  const filters = [{ slug: '', name: 'Todas' }, ...categories]
+  const totalPages = Math.ceil(total / pageSize)
+  const firstResult = total ? (page - 1) * pageSize + 1 : 0
+  const lastResult = total ? firstResult + costumes.length - 1 : 0
+  const pageItems = totalPages > 1 ? getPageItems(totalPages, page) : []
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Search */}
-      <div className="border-border bg-card ring-foreground/5 focus-within:ring-ring flex items-center gap-2 rounded-full border p-2 pl-5 ring-1 transition-all focus-within:border-transparent focus-within:ring-2">
-        <Search
-          className="text-muted-foreground size-5 shrink-0"
-          aria-hidden="true"
-        />
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar por nombre o etiqueta…"
-          aria-label="Buscar disfraces"
-          className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent text-base outline-none"
-        />
-        {query && (
-          <button
-            type="button"
-            onClick={() => setQuery('')}
-            aria-label="Limpiar búsqueda"
-            className="text-muted-foreground hover:bg-muted flex size-8 shrink-0 items-center justify-center rounded-full"
-          >
-            <X className="size-4" />
-          </button>
-        )}
-      </div>
-
-      {/* Filter chips */}
-      <div
-        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
-        role="tablist"
-        aria-label="Filtrar por categoría"
+      <form
+        action="/costumes"
+        className="border-border bg-card ring-foreground/5 focus-within:ring-ring flex flex-col gap-2 rounded-3xl border p-3 ring-1 focus-within:border-transparent focus-within:ring-2 sm:flex-row sm:items-center"
+        method="get"
+        role="search"
       >
-        {filters.map((f) => (
-          <button
-            key={f.slug}
-            type="button"
-            role="tab"
-            aria-selected={category === f.slug}
-            onClick={() => {
-              setCategory(f.slug)
-              trackEvent({ name: 'catalog-filter', data: { category: f.name } })
-            }}
+        <label className="sr-only" htmlFor="catalog-search">
+          Buscar disfraces
+        </label>
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <Search
+            aria-hidden="true"
+            className="text-muted-foreground size-5 shrink-0"
+          />
+          <input
+            className="placeholder:text-muted-foreground min-w-0 flex-1 bg-transparent px-1 py-1 text-base outline-none"
+            defaultValue={query}
+            id="catalog-search"
+            name="q"
+            placeholder="Buscar por nombre, descripción o etiqueta…"
+            type="search"
+          />
+        </div>
+        <label className="sr-only" htmlFor="catalog-category">
+          Categoría
+        </label>
+        <select
+          className="border-border bg-background focus-visible:border-ring focus-visible:ring-ring/50 h-8 rounded-lg border px-2 text-sm outline-none focus-visible:ring-3"
+          defaultValue={category}
+          id="catalog-category"
+          name="category"
+        >
+          {filters.map((filter) => (
+            <option key={filter.slug || 'all'} value={filter.slug}>
+              {filter.name}
+            </option>
+          ))}
+        </select>
+        <Button type="submit">Buscar</Button>
+      </form>
+
+      <nav
+        aria-label="Filtrar por categoría"
+        className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+      >
+        {filters.map((filter) => (
+          <Link
+            aria-current={category === filter.slug ? 'page' : undefined}
             className={cn(
-              'focus-visible:ring-ring shrink-0 rounded-full px-4 py-2 text-sm font-medium transition-[color,background-color] outline-none focus-visible:ring-2',
-              category === f.slug
+              'focus-visible:ring-ring shrink-0 rounded-full px-4 py-2 text-sm font-medium outline-none focus-visible:ring-2',
+              category === filter.slug
                 ? 'bg-primary text-primary-foreground'
                 : 'bg-secondary text-secondary-foreground hover:bg-secondary/70',
             )}
+            href={getCatalogHref({ query, category: filter.slug })}
+            key={filter.slug || 'all'}
           >
-            {f.name}
-          </button>
+            {filter.name}
+          </Link>
         ))}
-      </div>
+      </nav>
 
-      {/* Results */}
       <p className="text-muted-foreground text-sm">
-        {filtered.length} {filtered.length === 1 ? 'creación' : 'creaciones'}
+        {total
+          ? `${firstResult}–${lastResult} de ${total} ${total === 1 ? 'creación' : 'creaciones'}`
+          : '0 creaciones'}
       </p>
 
-      {filtered.length > 0 ? (
+      {costumes.length > 0 ? (
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((costume) => (
+          {costumes.map((costume) => (
             <CostumeCard key={costume.slug} costume={costume} />
           ))}
         </div>
       ) : (
         <div className="bg-secondary/40 flex flex-col items-center gap-3 rounded-3xl py-16 text-center">
           <p className="font-heading text-xl font-medium">
-            No se encontraron creaciones
+            {total
+              ? 'Esta página no tiene creaciones'
+              : 'No se encontraron creaciones'}
           </p>
           <p className="text-muted-foreground max-w-xs text-sm">
-            Prueba con una búsqueda o categoría distinta — o escríbenos para
-            pedir una pieza personalizada.
+            {total
+              ? 'Vuelve a la primera página para explorar las creaciones disponibles.'
+              : 'Prueba con una búsqueda o categoría distinta — o escríbenos para pedir una pieza personalizada.'}
           </p>
-          <button
-            type="button"
-            onClick={() => {
-              setQuery('')
-              setCategory('all')
-            }}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 mt-2 rounded-full px-5 py-2.5 text-sm font-semibold"
+          <Link
+            className={cn(
+              buttonVariants({ variant: 'default' }),
+              'mt-2 rounded-full',
+            )}
+            href={total ? getCatalogHref({ query, category }) : '/costumes'}
           >
-            Restablecer filtros
-          </button>
+            {total ? 'Volver a la primera página' : 'Restablecer filtros'}
+          </Link>
         </div>
+      )}
+
+      {pageItems.length > 0 && (
+        <Pagination aria-label="Paginación del catálogo">
+          <PaginationContent>
+            {page > 1 && (
+              <PaginationItem>
+                <PaginationPrevious
+                  href={getCatalogHref({ query, category, page: page - 1 })}
+                  text="Anterior"
+                />
+              </PaginationItem>
+            )}
+            {pageItems.map((item) =>
+              typeof item === 'object' ? (
+                <PaginationItem key={`ellipsis-${item.after}`}>
+                  <PaginationEllipsis />
+                </PaginationItem>
+              ) : (
+                <PaginationItem key={item}>
+                  <PaginationLink
+                    href={getCatalogHref({ query, category, page: item })}
+                    isActive={item === page}
+                  >
+                    {item}
+                  </PaginationLink>
+                </PaginationItem>
+              ),
+            )}
+            {page < totalPages && (
+              <PaginationItem>
+                <PaginationNext
+                  href={getCatalogHref({ query, category, page: page + 1 })}
+                  text="Siguiente"
+                />
+              </PaginationItem>
+            )}
+          </PaginationContent>
+        </Pagination>
       )}
     </div>
   )

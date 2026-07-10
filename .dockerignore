@@ -1,0 +1,10 @@
+.git
+.next
+node_modules
+generated
+.env*
+!.env.example
+*.log
+*.tsbuildinfo
+AGENTS.md
+.agents
