@@ -2,10 +2,10 @@
 
 import { cookies } from 'next/headers'
 import { PutObjectCommand } from '@aws-sdk/client-s3'
-import sharp from 'sharp'
 import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/r2'
 import { verifySession } from '@/lib/auth'
-import { validateImageFile } from '@/lib/image-upload-validation'
+import { validateImageUploadSize } from '@/lib/image-upload-validation'
+import { ImageProcessingError, processImage } from '@/lib/image-processing'
 import { createUploadKey } from '@/lib/catalog-safeguards'
 import { logActionOutcome } from '@/lib/action-logging'
 
@@ -28,8 +28,15 @@ export async function uploadImageAction(
     error: string,
     failureClass: string,
     cause?: unknown,
+    diagnostics: Record<string, unknown> = {},
   ): { error: string } => {
-    logActionOutcome('upload-image', 'failure', failureClass, cause)
+    logActionOutcome(
+      'upload-image',
+      'failure',
+      failureClass,
+      cause,
+      diagnostics,
+    )
     return { error }
   }
   try {
@@ -43,29 +50,35 @@ export async function uploadImageAction(
     return fail('No se proporcionó ningún archivo', 'validation')
   }
 
-  const validationError = validateImageFile(file)
+  const validationError = validateImageUploadSize(file)
   if (validationError) return fail(validationError, 'validation')
+
+  const uploadDiagnostics = {
+    original_bytes: file.size,
+    browser_mime: file.type || 'unknown',
+  }
+  let optimizedBuffer: Buffer
+  let imageDiagnostics: Record<string, unknown> = {}
 
   try {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
+    const processed = await processImage(buffer)
+    optimizedBuffer = processed.optimizedBuffer
+    imageDiagnostics = processed.diagnostics
+  } catch (error) {
+    const processingError =
+      error instanceof ImageProcessingError ? error : undefined
+    return fail(
+      'No se pudo procesar la imagen. Verifica que sea un archivo JPEG o PNG válido.',
+      'image_processing',
+      processingError?.cause ?? error,
+      { ...uploadDiagnostics, ...processingError?.diagnostics },
+    )
+  }
 
-    // Optimizar imagen con sharp:
-    // - Redimensionar ancho máximo 1920px (sin agrandar si es menor)
-    // - Convertir a formato WebP con calidad 80
-    // - Limpiar metadatos EXIF implícitamente al procesar
-    const optimizedBuffer = await sharp(buffer)
-      .resize({
-        width: 1920,
-        withoutEnlargement: true,
-        fit: 'inside',
-      })
-      .webp({ quality: 80 })
-      .toBuffer()
-
-    const key = createUploadKey()
-
-    // Subir el buffer directo a R2
+  const key = createUploadKey()
+  try {
     await r2Client.send(
       new PutObjectCommand({
         Bucket: R2_BUCKET_NAME,
@@ -74,13 +87,16 @@ export async function uploadImageAction(
         ContentType: 'image/webp',
       }),
     )
-
-    // Construir la URL pública final
-    const url = `${R2_PUBLIC_URL}/${key}`
-
-    logActionOutcome('upload-image', 'success')
-    return { success: true, url, key }
   } catch (error) {
-    return fail('Error al procesar o subir la imagen', 'r2', error)
+    return fail(
+      'La imagen se procesó, pero no se pudo subir. Inténtalo de nuevo.',
+      'r2',
+      error,
+      { ...uploadDiagnostics, ...imageDiagnostics },
+    )
   }
+
+  const url = `${R2_PUBLIC_URL}/${key}`
+  logActionOutcome('upload-image', 'success')
+  return { success: true, url, key }
 }

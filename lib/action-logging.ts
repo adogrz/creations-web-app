@@ -3,7 +3,14 @@ export function logActionOutcome(
   outcome: 'success' | 'failure',
   failureClass?: string,
   error?: unknown,
+  details: Record<string, unknown> = {},
 ) {
+  const safeMessage =
+    error instanceof Error
+      ? error.message
+          .replace(/https?:\/\/\S+/gi, '[redacted-url]')
+          .slice(0, 500)
+      : undefined
   const diagnostic =
     error && typeof error === 'object'
       ? {
@@ -12,6 +19,7 @@ export function logActionOutcome(
           (typeof error.code === 'string' || typeof error.code === 'number')
             ? { error_code: error.code }
             : {}),
+          ...(safeMessage ? { error_message: safeMessage } : {}),
         }
       : {}
   console.info(
@@ -21,6 +29,7 @@ export function logActionOutcome(
       outcome,
       ...(failureClass ? { failure_class: failureClass } : {}),
       ...diagnostic,
+      ...details,
     }),
   )
 }

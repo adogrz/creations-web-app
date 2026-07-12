@@ -27,13 +27,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
-import { validateImageFile } from '@/lib/image-upload-validation'
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  IMAGE_UPLOAD_HELP_TEXT,
+  validateImageFile,
+} from '@/lib/image-upload-validation'
 import {
   createCategoryAction,
   updateCategoryAction,
   deleteCategoryAction,
 } from '@/app/admin/actions/category-actions'
-import { uploadImageAction } from '@/app/admin/actions/upload-actions'
+import { uploadImage } from '@/lib/upload-image-client'
 import { toast } from 'sonner'
 
 function slugify(text: string) {
@@ -132,7 +136,7 @@ export function CategoriesManager({
         const uploadData = new FormData()
         uploadData.append('file', selectedFile)
 
-        const uploadRes = await uploadImageAction(uploadData)
+        const uploadRes = await uploadImage(uploadData)
         if (!uploadRes.success || !uploadRes.url || !uploadRes.key) {
           toast.error(uploadRes.error || 'Error al subir la nueva imagen')
           return
@@ -196,7 +200,7 @@ export function CategoriesManager({
       const uploadData = new FormData()
       uploadData.append('file', selectedFile)
 
-      const uploadRes = await uploadImageAction(uploadData)
+      const uploadRes = await uploadImage(uploadData)
       if (!uploadRes.success || !uploadRes.url || !uploadRes.key) {
         toast.error(uploadRes.error || 'Error al subir la imagen a la nube')
         return
@@ -272,13 +276,13 @@ export function CategoriesManager({
                     </span>
                     <span className="text-sm font-medium">Subir imagen</span>
                     <span className="text-muted-foreground text-xs">
-                      PNG o JPG, máximo 9 MB
+                      {IMAGE_UPLOAD_HELP_TEXT}
                     </span>
                   </label>
                   <input
                     id="new-cat-file"
                     type="file"
-                    accept="image/*"
+                    accept={IMAGE_UPLOAD_ACCEPT}
                     className="hidden"
                     onChange={handleFileChange}
                     disabled={isPending}
@@ -399,13 +403,13 @@ export function CategoriesManager({
                             Subir nueva imagen
                           </span>
                           <span className="text-muted-foreground text-xs">
-                            PNG o JPG, máximo 9 MB
+                            {IMAGE_UPLOAD_HELP_TEXT}
                           </span>
                         </label>
                         <input
                           id={`edit-file-${cat.id}`}
                           type="file"
-                          accept="image/*"
+                          accept={IMAGE_UPLOAD_ACCEPT}
                           className="hidden"
                           onChange={handleFileChange}
                           disabled={isPending}

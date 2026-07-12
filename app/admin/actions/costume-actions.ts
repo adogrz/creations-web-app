@@ -79,7 +79,7 @@ const unauthorized: ActionFailure = {
 function revalidateCostumePaths() {
   revalidatePath('/')
   revalidatePath('/costumes')
-  revalidatePath('/costumes/[slug]', 'page')
+  revalidatePath('/(site)/costumes/[slug]', 'page')
   revalidatePath('/admin')
 }
 

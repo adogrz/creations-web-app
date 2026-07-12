@@ -64,7 +64,7 @@ export async function updateSettingsAction(prevState: any, formData: FormData) {
 
     revalidatePath('/')
     revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]')
+    revalidatePath('/(site)/costumes/[slug]', 'page')
 
     return { success: true }
   } catch (error) {

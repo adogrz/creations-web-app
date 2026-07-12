@@ -19,9 +19,13 @@ import {
   createCostumeAction,
   updateCostumeAction,
 } from '@/app/admin/actions/costume-actions'
-import { uploadImageAction } from '@/app/admin/actions/upload-actions'
 import { toast } from 'sonner'
-import { validateImageFile } from '@/lib/image-upload-validation'
+import {
+  IMAGE_UPLOAD_ACCEPT,
+  IMAGE_UPLOAD_HELP_TEXT,
+  validateImageFile,
+} from '@/lib/image-upload-validation'
+import { uploadImage } from '@/lib/upload-image-client'
 
 type UploadedImage = { url: string; key: string }
 
@@ -192,7 +196,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
         const formData = new FormData()
         formData.append('file', item.file!)
 
-        const res = await uploadImageAction(formData)
+        const res = await uploadImage(formData)
         if (res.success && res.url && res.key) {
           return { url: res.url, key: res.key }
         } else {
@@ -490,13 +494,13 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
               </span>
               <span className="text-sm font-medium">Subir imágenes</span>
               <span className="text-muted-foreground text-xs">
-                PNG o JPG, máximo 9 MB
+                {IMAGE_UPLOAD_HELP_TEXT}
               </span>
             </button>
             <input
               ref={fileInputRef}
               type="file"
-              accept="image/*"
+              accept={IMAGE_UPLOAD_ACCEPT}
               multiple
               aria-label="Input de subir imágenes oculto"
               className="hidden"
