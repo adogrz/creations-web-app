@@ -11,7 +11,7 @@ const accessKeyId = process.env.R2_ACCESS_KEY_ID
 const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY
 
 export const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || ''
-export const R2_PUBLIC_URL = process.env.R2_PUBLIC_URL || ''
+export const R2_PUBLIC_URL = (process.env.R2_PUBLIC_URL || '').replace(/\/+$/, '')
 
 // Verificar la existencia de las variables requeridas en runtime
 if (!accountId || !accessKeyId || !secretAccessKey || !R2_BUCKET_NAME) {
