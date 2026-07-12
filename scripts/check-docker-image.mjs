@@ -21,5 +21,5 @@ run('docker', [
   'sh',
   image,
   '-c',
-  'test "$(id -u)" -ne 0 && test -x ./node_modules/.bin/prisma && test -f ./prisma/schema.prisma && test -f ./server.js',
+  'test "$(id -u)" -ne 0 && test -x ./node_modules/.bin/prisma && test -f ./prisma/schema.prisma && test -f ./server.js && test -f ./scripts/r2-orphan-cleanup.mjs && node ./scripts/r2-orphan-cleanup.mjs --help | grep -q quarantines',
 ])

@@ -10,6 +10,20 @@ jobs:
   verification:
     name: Verificar Calidad
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: creations_test
+        options: >-
+          --health-cmd "pg_isready -U postgres -d creations_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
 
     steps:
       - name: Checkout code
@@ -39,11 +53,30 @@ jobs:
       - name: Check Types
         run: pnpm typecheck
 
+      - name: Check critical contracts and proxy safety
+        run: pnpm check:critical
+
+      - name: Check Docker runtime image
+        run: pnpm check:docker
+
+      - name: Apply migrations
+        run: pnpm prisma migrate deploy
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/creations_test'
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Check catalog database integration
+        run: pnpm check:integration
+        env:
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/creations_test'
+
       # Check de Build (Next.js Build)
       - name: Verify Build
         run: pnpm build
         env:
-          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/postgres'
+          DATABASE_URL: 'postgresql://postgres:postgres@localhost:5432/creations_test'
           SESSION_SECRET: 'dummy-session-secret-at-least-32-chars-long'
           ADMIN_PASSWORD: 'dummy-admin-password'
           R2_ACCESS_KEY_ID: 'dummy-key-id'

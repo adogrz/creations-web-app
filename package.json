@@ -21,7 +21,13 @@
     "typecheck": "tsc --noEmit",
     "check:catalog": "tsx scripts/check-catalog-navigation.ts",
     "check:proxy": "tsx scripts/check-proxy.ts",
+    "check:uploads": "tsx scripts/check-image-upload-validation.ts",
+    "check:r2-cleanup": "node scripts/check-r2-orphan-cleanup.mjs",
+    "check:critical": "tsx scripts/check-critical-contracts.ts && pnpm check:uploads && pnpm check:proxy && pnpm check:r2-cleanup",
+    "check:integration": "NODE_ENV=test INTEGRATION_TEST_DATABASE=1 tsx scripts/check-catalog-integration.ts",
     "check:docker": "node scripts/check-docker-image.mjs",
+    "r2:cleanup": "node scripts/r2-orphan-cleanup.mjs",
+    "r2:cleanup:delete": "node scripts/r2-orphan-cleanup.mjs --delete",
     "postinstall": "prisma generate"
   },
   "dependencies": {

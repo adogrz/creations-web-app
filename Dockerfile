@@ -1,5 +1,3 @@
-# syntax=docker/dockerfile:1
-
 FROM node:22-alpine AS dependencies
 WORKDIR /app
 RUN corepack enable
@@ -44,6 +42,7 @@ RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
 COPY --from=builder --chown=node:node /app/public ./public
 COPY --from=builder --chown=node:node /app/prisma ./prisma
 COPY --from=builder --chown=node:node /app/prisma.config.ts ./prisma.config.ts
+COPY --from=builder --chown=node:node /app/scripts/r2-orphan-cleanup.mjs ./scripts/r2-orphan-cleanup.mjs
 COPY --from=builder --chown=node:node /app/.next/standalone ./
 COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 RUN chown -R node:node /app
