@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict'
+import { NextRequest } from 'next/server'
+import { config, proxy } from '../proxy'
+import { UMAMI_SCRIPT_SRC } from '../components/analytics/umami-analytics'
 import {
   getUmamiRequestHeaders,
   getUmamiRewriteUrl,
@@ -18,6 +21,15 @@ assert.equal(trustedHeaders.has('cf-connecting-ip'), false)
 assert.equal(trustedHeaders.has('x-forwarded-for'), false)
 assert.equal(trustedHeaders.has('x-real-ip'), false)
 assert.equal(getUmamiRequestHeaders(new Headers()).has('x-visitor-ip'), false)
+assert.equal(UMAMI_SCRIPT_SRC, '/stats/script.js')
+assert.equal(
+  getUmamiRewriteUrl(
+    'https://analytics.example.com',
+    '/stats/script.js',
+    '',
+  ).toString(),
+  'https://analytics.example.com/script.js',
+)
 assert.equal(
   getUmamiRewriteUrl(
     'https://analytics.example.com',
@@ -26,3 +38,16 @@ assert.equal(
   ).toString(),
   'https://analytics.example.com/api/send?site=creations',
 )
+
+async function checkProxyRoute() {
+  const response = await proxy(
+    new NextRequest('https://creations.example/stats/script.js'),
+  )
+  assert.equal(
+    response.headers.get('x-middleware-rewrite'),
+    'https://analytics.adogrz.com/script.js',
+  )
+  assert.deepEqual(config.matcher, ['/admin/:path*', '/stats/:path*'])
+}
+
+void checkProxyRoute()

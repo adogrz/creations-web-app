@@ -1,5 +1,7 @@
 import Script from 'next/script'
 
+export const UMAMI_SCRIPT_SRC = '/stats/script.js'
+
 export function UmamiAnalytics() {
   const websiteId = process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID
   const domains =
@@ -9,7 +11,7 @@ export function UmamiAnalytics() {
 
   return (
     <Script
-      src="/stats/script.js"
+      src={UMAMI_SCRIPT_SRC}
       data-website-id={websiteId}
       data-domains={domains}
       strategy="afterInteractive"
