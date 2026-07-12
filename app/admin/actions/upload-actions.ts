@@ -1,10 +1,13 @@
 'use server'
 
 import { cookies } from 'next/headers'
-import { PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { PutObjectCommand } from '@aws-sdk/client-s3'
 import sharp from 'sharp'
 import { r2Client, R2_BUCKET_NAME, R2_PUBLIC_URL } from '@/lib/r2'
 import { verifySession } from '@/lib/auth'
+import { validateImageFile } from '@/lib/image-upload-validation'
+import { createUploadKey } from '@/lib/catalog-safeguards'
+import { logActionOutcome } from '@/lib/action-logging'
 
 async function checkAuth() {
   const cookieStore = await cookies()
@@ -15,22 +18,33 @@ async function checkAuth() {
   }
 }
 
-export async function uploadImageAction(formData: FormData) {
+export async function uploadImageAction(
+  formData: FormData,
+): Promise<
+  | { success: true; url: string; key: string; error?: never }
+  | { success?: false; error: string }
+> {
+  const fail = (
+    error: string,
+    failureClass: string,
+    cause?: unknown,
+  ): { error: string } => {
+    logActionOutcome('upload-image', 'failure', failureClass, cause)
+    return { error }
+  }
   try {
     await checkAuth()
   } catch {
-    return { error: 'No autorizado' }
+    return fail('No autorizado', 'unauthorized')
   }
 
   const file = formData.get('file') as File | null
   if (!file) {
-    return { error: 'No se proporcionó ningún archivo' }
+    return fail('No se proporcionó ningún archivo', 'validation')
   }
 
-  // Validar tipo de archivo
-  if (!file.type.startsWith('image/')) {
-    return { error: 'El archivo debe ser una imagen' }
-  }
+  const validationError = validateImageFile(file)
+  if (validationError) return fail(validationError, 'validation')
 
   try {
     const arrayBuffer = await file.arrayBuffer()
@@ -49,9 +63,7 @@ export async function uploadImageAction(formData: FormData) {
       .webp({ quality: 80 })
       .toBuffer()
 
-    // Generar un key único o usar uno personalizado proporcionado por el cliente
-    const customKey = formData.get('key') as string | null
-    const key = customKey || `uploads/${crypto.randomUUID()}.webp`
+    const key = createUploadKey()
 
     // Subir el buffer directo a R2
     await r2Client.send(
@@ -66,34 +78,9 @@ export async function uploadImageAction(formData: FormData) {
     // Construir la URL pública final
     const url = `${R2_PUBLIC_URL}/${key}`
 
+    logActionOutcome('upload-image', 'success')
     return { success: true, url, key }
   } catch (error) {
-    console.error('Error en uploadImageAction:', error)
-    return { error: 'Error al procesar o subir la imagen' }
-  }
-}
-
-export async function deleteImageAction(key: string) {
-  try {
-    await checkAuth()
-  } catch {
-    return { error: 'No autorizado' }
-  }
-
-  if (!key) {
-    return { error: 'No se proporcionó la clave del archivo' }
-  }
-
-  try {
-    await r2Client.send(
-      new DeleteObjectCommand({
-        Bucket: R2_BUCKET_NAME,
-        Key: key,
-      }),
-    )
-    return { success: true }
-  } catch (error) {
-    console.error('Error en deleteImageAction:', error)
-    return { error: 'Error al eliminar la imagen de R2' }
+    return fail('Error al procesar o subir la imagen', 'r2', error)
   }
 }
