@@ -76,9 +76,12 @@ export async function getCostumes(options?: {
 /**
  * Obtiene un disfraz detallado por su slug
  */
-export async function getCostumeBySlug(slug: string) {
+export async function getCostumeBySlug(
+  slug: string,
+  includeUnpublished = false,
+) {
   return prisma.costume.findUnique({
-    where: { slug },
+    where: { slug, ...(includeUnpublished ? {} : { published: true }) },
     include: {
       images: {
         orderBy: { order: 'asc' },

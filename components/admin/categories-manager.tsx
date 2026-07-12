@@ -27,15 +27,13 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
 import { cn } from '@/lib/utils'
+import { validateImageFile } from '@/lib/image-upload-validation'
 import {
   createCategoryAction,
   updateCategoryAction,
   deleteCategoryAction,
 } from '@/app/admin/actions/category-actions'
-import {
-  uploadImageAction,
-  deleteImageAction,
-} from '@/app/admin/actions/upload-actions'
+import { uploadImageAction } from '@/app/admin/actions/upload-actions'
 import { toast } from 'sonner'
 
 function slugify(text: string) {
@@ -51,6 +49,7 @@ function slugify(text: string) {
 
 type CategoryItem = {
   id: string
+  updatedAt: string
   name: string
   slug: string
   description: string
@@ -74,9 +73,10 @@ export function CategoriesManager({
   const [newName, setNewName] = useState('')
   const [newDescription, setNewDescription] = useState('')
 
-  // Archivo local e URL de preview para evitar subidas huérfanas en R2
+  // Archivo local y URL de vista previa; fallos de envío pueden dejar objetos huérfanos.
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [imageRemoved, setImageRemoved] = useState(false)
   const [isPending, startTransition] = useTransition()
 
   useEffect(() => {
@@ -86,13 +86,21 @@ export function CategoriesManager({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0]
     if (!file) return
+    const validationError = validateImageFile(file)
+    if (validationError) {
+      e.target.value = ''
+      toast.error(validationError)
+      return
+    }
     setSelectedFile(file)
     setPreviewUrl(URL.createObjectURL(file))
+    setImageRemoved(false)
   }
 
   function removeImage() {
     setSelectedFile(null)
     setPreviewUrl(null)
+    setImageRemoved(true)
   }
 
   function startEdit(cat: CategoryItem) {
@@ -101,6 +109,7 @@ export function CategoriesManager({
     setEditDescription(cat.description)
     setPreviewUrl(cat.image)
     setSelectedFile(null)
+    setImageRemoved(false)
   }
 
   function cancelEdit() {
@@ -109,6 +118,7 @@ export function CategoriesManager({
     setEditDescription('')
     setSelectedFile(null)
     setPreviewUrl(null)
+    setImageRemoved(false)
   }
 
   async function saveEdit(id: string) {
@@ -119,11 +129,8 @@ export function CategoriesManager({
 
       // Si seleccionó una nueva foto local, la subimos a R2
       if (selectedFile) {
-        const customKey = `${id}/profile.webp`
-
         const uploadData = new FormData()
         uploadData.append('file', selectedFile)
-        uploadData.append('key', customKey)
 
         const uploadRes = await uploadImageAction(uploadData)
         if (!uploadRes.success || !uploadRes.url || !uploadRes.key) {
@@ -135,24 +142,31 @@ export function CategoriesManager({
       }
 
       const formData = new FormData()
+      const category = list.find((item) => item.id === id)
+      if (!category) return
+      formData.append('updatedAt', category.updatedAt)
       formData.append('name', editName.trim())
       formData.append('description', editDescription.trim())
-      if (finalImageUrl && finalImageKey) {
-        formData.append('image', finalImageUrl)
-        formData.append('imageKey', finalImageKey)
-      }
+      formData.append(
+        'image',
+        imageRemoved ? '' : finalImageUrl || category.image,
+      )
+      formData.append(
+        'imageKey',
+        imageRemoved ? '' : finalImageKey || category.imageKey,
+      )
 
-      const res = await updateCategoryAction(id, formData)
-      if (res.success) {
-        toast.success('Categoría actualizada')
-        cancelEdit()
-        router.refresh()
-      } else {
-        // Si falló el guardado, limpiamos R2 del archivo recién subido
-        if (finalImageKey) {
-          await deleteImageAction(finalImageKey)
+      try {
+        const res = await updateCategoryAction(id, formData)
+        if (res.success) {
+          toast.success('Categoría actualizada')
+          cancelEdit()
+          router.refresh()
+          return
         }
         toast.error(res.error || 'Error al actualizar categoría')
+      } catch {
+        toast.error('No se pudo actualizar la categoría. Inténtalo de nuevo.')
       }
     })
   }
@@ -178,12 +192,9 @@ export function CategoriesManager({
 
     startTransition(async () => {
       const catId = crypto.randomUUID()
-      const customKey = `${catId}/profile.webp`
-
       // 1. Subir la imagen a R2 antes de crear el registro
       const uploadData = new FormData()
       uploadData.append('file', selectedFile)
-      uploadData.append('key', customKey)
 
       const uploadRes = await uploadImageAction(uploadData)
       if (!uploadRes.success || !uploadRes.url || !uploadRes.key) {
@@ -199,19 +210,21 @@ export function CategoriesManager({
       formData.append('image', uploadRes.url)
       formData.append('imageKey', uploadRes.key)
 
-      const res = await createCategoryAction(formData)
-      if (res.success) {
-        toast.success('Categoría creada exitosamente')
-        setAdding(false)
-        setNewName('')
-        setNewDescription('')
-        setSelectedFile(null)
-        setPreviewUrl(null)
-        router.refresh()
-      } else {
-        // Limpiar la imagen recién subida a R2 si falló la creación en BD
-        await deleteImageAction(uploadRes.key)
+      try {
+        const res = await createCategoryAction(formData)
+        if (res.success) {
+          toast.success('Categoría creada exitosamente')
+          setAdding(false)
+          setNewName('')
+          setNewDescription('')
+          setSelectedFile(null)
+          setPreviewUrl(null)
+          router.refresh()
+          return
+        }
         toast.error(res.error || 'Error al crear la categoría')
+      } catch {
+        toast.error('No se pudo crear la categoría. Inténtalo de nuevo.')
       }
     })
   }
@@ -259,7 +272,7 @@ export function CategoriesManager({
                     </span>
                     <span className="text-sm font-medium">Subir imagen</span>
                     <span className="text-muted-foreground text-xs">
-                      PNG o JPG, haz clic para buscar
+                      PNG o JPG, máximo 9 MB
                     </span>
                   </label>
                   <input
@@ -386,7 +399,7 @@ export function CategoriesManager({
                             Subir nueva imagen
                           </span>
                           <span className="text-muted-foreground text-xs">
-                            PNG o JPG, haz clic para buscar
+                            PNG o JPG, máximo 9 MB
                           </span>
                         </label>
                         <input

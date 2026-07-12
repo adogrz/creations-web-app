@@ -12,6 +12,7 @@ import {
   getSettings,
 } from '@/lib/queries'
 import prisma from '@/lib/db'
+import { escapeJsonForScript } from '@/lib/catalog-safeguards'
 
 export const dynamicParams = true
 
@@ -155,7 +156,7 @@ export default async function CostumeDetailPage({
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: escapeJsonForScript(jsonLd) }}
       />
       <Link
         href="/costumes"

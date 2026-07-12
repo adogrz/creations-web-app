@@ -19,6 +19,7 @@ export default async function AdminCategoriesPage() {
   // Mapear al formato que espera el componente (con conteo pre-calculado)
   const mappedCategories = categories.map((c) => ({
     id: c.id,
+    updatedAt: c.updatedAt.toISOString(),
     name: c.name,
     slug: c.slug,
     description: c.description || '',

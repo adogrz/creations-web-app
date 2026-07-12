@@ -16,7 +16,7 @@ export default async function EditCostumePage({
   const { slug } = await params
 
   const [costume, categories] = await Promise.all([
-    getCostumeBySlug(slug),
+    getCostumeBySlug(slug, true),
     prisma.category.findMany({
       orderBy: { name: 'asc' },
     }),
@@ -29,6 +29,7 @@ export default async function EditCostumePage({
   // Mapear al formato del formulario
   const mappedCostume = {
     id: costume.id,
+    updatedAt: costume.updatedAt.toISOString(),
     name: costume.name,
     slug: costume.slug,
     categoryId: costume.categoryId,

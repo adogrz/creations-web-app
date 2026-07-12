@@ -3,9 +3,28 @@
 import { cookies } from 'next/headers'
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
-import prisma from '@/lib/db'
 import { verifySession } from '@/lib/auth'
-import { deleteImageAction } from './upload-actions'
+import {
+  costumeRevalidationPaths,
+  parseUploadedImages,
+} from '@/lib/catalog-safeguards'
+import { logActionOutcome } from '@/lib/action-logging'
+import {
+  executeCostumeAction,
+  type ActionFailure,
+  type ActionResult,
+} from '@/lib/catalog-action-orchestration'
+import {
+  CATALOG_MUTATION_ERRORS,
+  createCostume,
+  deleteCostume,
+  isTransactionConflict,
+  updateCostume,
+} from '@/lib/catalog-mutations'
+import prisma from '@/lib/db'
+
+const STALE_COSTUME_ERROR =
+  'El disfraz fue actualizado por otra sesión. Recarga e inténtalo de nuevo.'
 
 const costumeSchema = z.object({
   name: z
@@ -38,9 +57,7 @@ async function checkAuth() {
   const cookieStore = await cookies()
   const session = cookieStore.get('admin-session')
   const isValid = await verifySession(session?.value)
-  if (!isValid) {
-    throw new Error('No autorizado')
-  }
+  return isValid
 }
 
 function slugify(text: string) {
@@ -54,279 +71,216 @@ function slugify(text: string) {
     .replace(/^-|-$/g, '')
 }
 
-export async function createCostumeAction(formData: FormData) {
-  try {
-    await checkAuth()
-  } catch {
-    return { error: 'No autorizado' }
-  }
-
-  const rawData = {
-    name: formData.get('name'),
-    description: formData.get('description'),
-    price: formData.get('price'),
-    estimatedTime: formData.get('estimatedTime'),
-    audience: formData.get('audience'),
-    categoryId: formData.get('categoryId'),
-    published: formData.get('published') === 'true',
-    featured: formData.get('featured') === 'true',
-    tags: formData.get('tags') || '',
-  }
-
-  const parsed = costumeSchema.safeParse(rawData)
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
-  }
-
-  const imagesRaw = formData.get('images') as string
-  const imagesList = JSON.parse(imagesRaw || '[]') as {
-    url: string
-    key: string
-    alt?: string
-  }[]
-
-  if (imagesList.length === 0) {
-    return { error: 'Debes añadir al menos una imagen' }
-  }
-
-  const slug = slugify(parsed.data.name)
-
-  try {
-    // Verificar duplicado de slug
-    const exists = await prisma.costume.findUnique({ where: { slug } })
-    if (exists) {
-      return { error: 'Ya existe un disfraz con un nombre similar' }
-    }
-
-    // Verificar límite de destacados si corresponde
-    if (parsed.data.featured && parsed.data.published) {
-      const featuredCount = await prisma.costume.count({
-        where: { featured: true, published: true },
-      })
-      if (featuredCount >= 10) {
-        return { error: 'Límite alcanzado: máximo 10 disfraces destacados' }
-      }
-    }
-
-    const id = formData.get('id') as string | null
-
-    // Guardar en base de datos mediante transacción
-    await prisma.$transaction(async (tx) => {
-      const costume = await tx.costume.create({
-        data: {
-          id: id || undefined,
-          name: parsed.data.name,
-          slug,
-          description: parsed.data.description,
-          price: parsed.data.price,
-          estimatedTime: parsed.data.estimatedTime,
-          audience: parsed.data.audience,
-          tags: parsed.data.tags,
-          published: parsed.data.published,
-          featured: parsed.data.featured,
-          categoryId: parsed.data.categoryId,
-        },
-      })
-
-      // Insertar imágenes asociadas
-      await tx.image.createMany({
-        data: imagesList.map((img, i) => ({
-          url: img.url,
-          key: img.key,
-          alt: img.alt || parsed.data.name,
-          order: i,
-          costumeId: costume.id,
-        })),
-      })
-    })
-
-    revalidatePath('/')
-    revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]', 'page')
-    revalidatePath('/admin')
-
-    return { success: true }
-  } catch (error) {
-    console.error('Error al crear disfraz:', error)
-    return { error: 'Error interno del servidor al crear el disfraz' }
-  }
+const unauthorized: ActionFailure = {
+  error: 'No autorizado',
+  failureClass: 'unauthorized',
 }
 
-export async function updateCostumeAction(formData: FormData) {
-  const id = formData.get('id') as string
-  if (!id) {
-    return { error: 'ID de disfraz no proporcionado' }
-  }
-  try {
-    await checkAuth()
-  } catch {
-    return { error: 'No autorizado' }
-  }
-
-  const rawData = {
-    name: formData.get('name'),
-    description: formData.get('description'),
-    price: formData.get('price'),
-    estimatedTime: formData.get('estimatedTime'),
-    audience: formData.get('audience'),
-    categoryId: formData.get('categoryId'),
-    published: formData.get('published') === 'true',
-    featured: formData.get('featured') === 'true',
-    tags: formData.get('tags') || '',
-  }
-
-  const parsed = costumeSchema.safeParse(rawData)
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message || 'Datos inválidos' }
-  }
-
-  const imagesRaw = formData.get('images') as string
-  const imagesList = JSON.parse(imagesRaw || '[]') as {
-    id?: string
-    url: string
-    key: string
-    alt?: string
-  }[]
-
-  if (imagesList.length === 0) {
-    return { error: 'Debes añadir al menos una imagen' }
-  }
-
-  const slug = slugify(parsed.data.name)
-
-  try {
-    // Verificar duplicado de slug
-    const exists = await prisma.costume.findFirst({
-      where: {
-        slug,
-        id: { not: id },
-      },
-    })
-    if (exists) {
-      return { error: 'Ya existe otro disfraz con un nombre similar' }
-    }
-
-    // Verificar límite de destacados si se activó
-    if (parsed.data.featured && parsed.data.published) {
-      const featuredCount = await prisma.costume.count({
-        where: {
-          featured: true,
-          published: true,
-          id: { not: id },
-        },
-      })
-      if (featuredCount >= 10) {
-        return { error: 'Límite alcanzado: máximo 10 disfraces destacados' }
-      }
-    }
-
-    // Obtener imágenes actuales en la base de datos
-    const currentImages = await prisma.image.findMany({
-      where: { costumeId: id },
-    })
-
-    // Encontrar imágenes que fueron eliminadas del formulario para borrarlas de R2
-    const keepKeys = new Set(imagesList.map((img) => img.key))
-    const deleteImages = currentImages.filter((img) => !keepKeys.has(img.key))
-
-    for (const img of deleteImages) {
-      await deleteImageAction(img.key)
-    }
-
-    // Guardar actualización mediante transacción
-    await prisma.$transaction(async (tx) => {
-      const currentCostume = await tx.costume.findUnique({
-        where: { id },
-        select: { slug: true },
-      })
-      const oldSlug = currentCostume?.slug
-
-      if (oldSlug && oldSlug !== slug) {
-        // Eliminar cualquier redirección que apunte al nuevo slug para evitar bucles
-        await tx.slugRedirect.deleteMany({
-          where: { oldSlug: slug },
-        })
-
-        // Crear o actualizar la redirección del slug anterior
-        await tx.slugRedirect.upsert({
-          where: { oldSlug },
-          update: { costumeId: id },
-          create: { oldSlug, costumeId: id },
-        })
-      }
-
-      await tx.costume.update({
-        where: { id },
-        data: {
-          name: parsed.data.name,
-          slug,
-          description: parsed.data.description,
-          price: parsed.data.price,
-          estimatedTime: parsed.data.estimatedTime,
-          audience: parsed.data.audience,
-          tags: parsed.data.tags,
-          published: parsed.data.published,
-          featured: parsed.data.featured,
-          categoryId: parsed.data.categoryId,
-        },
-      })
-
-      // Eliminar registros viejos de imágenes en la BD y recrear la galería actualizada
-      await tx.image.deleteMany({
-        where: { costumeId: id },
-      })
-
-      await tx.image.createMany({
-        data: imagesList.map((img, i) => ({
-          url: img.url,
-          key: img.key,
-          alt: img.alt || parsed.data.name,
-          order: i,
-          costumeId: id,
-        })),
-      })
-    })
-
-    revalidatePath('/')
-    revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]', 'page')
-    revalidatePath('/admin')
-
-    return { success: true }
-  } catch (error) {
-    console.error('Error al actualizar disfraz:', error)
-    return { error: 'Error interno del servidor al actualizar el disfraz' }
-  }
+function revalidateCostumePaths() {
+  revalidatePath('/')
+  revalidatePath('/costumes')
+  revalidatePath('/costumes/[slug]', 'page')
+  revalidatePath('/admin')
 }
 
-export async function deleteCostumeAction(id: string) {
-  try {
-    await checkAuth()
-  } catch {
-    return { error: 'No autorizado' }
-  }
+export async function createCostumeAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  return executeCostumeAction({
+    action: 'create-costume',
+    authorize: checkAuth,
+    unauthorized,
+    parse: () => {
+      const parsed = costumeSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        price: formData.get('price'),
+        estimatedTime: formData.get('estimatedTime'),
+        audience: formData.get('audience'),
+        categoryId: formData.get('categoryId'),
+        published: formData.get('published') === 'true',
+        featured: formData.get('featured') === 'true',
+        tags: formData.get('tags') || '',
+      })
+      if (!parsed.success) {
+        return {
+          error: parsed.error.issues[0]?.message || 'Datos inválidos',
+          failureClass: 'validation',
+        }
+      }
+      const imagesResult = parseUploadedImages(formData.get('images'))
+      if ('error' in imagesResult) {
+        return { error: imagesResult.error, failureClass: 'validation' }
+      }
+      if (imagesResult.images.length === 0) {
+        return {
+          error: 'Debes añadir al menos una imagen',
+          failureClass: 'validation',
+        }
+      }
+      return {
+        data: {
+          id: (formData.get('id') as string | null) || undefined,
+          ...parsed.data,
+          slug: slugify(parsed.data.name),
+          images: imagesResult.images,
+        },
+      }
+    },
+    mutate: async (data) => {
+      if (await prisma.costume.findUnique({ where: { slug: data.slug } })) {
+        return {
+          error: 'Ya existe un disfraz con un nombre similar',
+          failureClass: 'conflict',
+        }
+      }
+      await createCostume(data)
+    },
+    complete: revalidateCostumePaths,
+    onError: (error) => {
+      if (
+        error instanceof Error &&
+        error.message === CATALOG_MUTATION_ERRORS.featuredLimit
+      ) {
+        return {
+          error: 'Límite alcanzado: máximo 10 disfraces destacados',
+          failureClass: 'conflict',
+        }
+      }
+      if (isTransactionConflict(error)) {
+        return { error: STALE_COSTUME_ERROR, failureClass: 'conflict' }
+      }
+      return {
+        error: 'Error interno del servidor al crear el disfraz',
+        failureClass: 'database',
+      }
+    },
+    log: logActionOutcome,
+  })
+}
 
-  try {
-    const currentImages = await prisma.image.findMany({
-      where: { costumeId: id },
-    })
+export async function updateCostumeAction(
+  formData: FormData,
+): Promise<ActionResult> {
+  return executeCostumeAction({
+    action: 'update-costume',
+    authorize: checkAuth,
+    unauthorized,
+    parse: () => {
+      const id = formData.get('id') as string
+      const expectedUpdatedAt = new Date(formData.get('updatedAt') as string)
+      if (!id) {
+        return {
+          error: 'ID de disfraz no proporcionado',
+          failureClass: 'validation',
+        }
+      }
+      if (Number.isNaN(expectedUpdatedAt.getTime())) {
+        return { error: 'Datos inválidos', failureClass: 'validation' }
+      }
+      const parsed = costumeSchema.safeParse({
+        name: formData.get('name'),
+        description: formData.get('description'),
+        price: formData.get('price'),
+        estimatedTime: formData.get('estimatedTime'),
+        audience: formData.get('audience'),
+        categoryId: formData.get('categoryId'),
+        published: formData.get('published') === 'true',
+        featured: formData.get('featured') === 'true',
+        tags: formData.get('tags') || '',
+      })
+      if (!parsed.success) {
+        return {
+          error: parsed.error.issues[0]?.message || 'Datos inválidos',
+          failureClass: 'validation',
+        }
+      }
+      const imagesResult = parseUploadedImages(formData.get('images'))
+      if ('error' in imagesResult) {
+        return { error: imagesResult.error, failureClass: 'validation' }
+      }
+      if (imagesResult.images.length === 0) {
+        return {
+          error: 'Debes añadir al menos una imagen',
+          failureClass: 'validation',
+        }
+      }
+      return {
+        data: {
+          id,
+          expectedUpdatedAt,
+          ...parsed.data,
+          slug: slugify(parsed.data.name),
+          images: imagesResult.images,
+        },
+      }
+    },
+    mutate: async (
+      data,
+    ): Promise<ActionFailure | { oldSlug: string; slug: string }> => {
+      if (
+        await prisma.costume.findFirst({
+          where: { slug: data.slug, id: { not: data.id } },
+        })
+      ) {
+        return {
+          error: 'Ya existe otro disfraz con un nombre similar',
+          failureClass: 'conflict',
+        }
+      }
+      const { oldSlug } = await updateCostume(data)
+      return { oldSlug, slug: data.slug }
+    },
+    complete: ({ oldSlug, slug }) => {
+      revalidateCostumePaths()
+      costumeRevalidationPaths(oldSlug, slug).forEach((path) =>
+        revalidatePath(path),
+      )
+    },
+    onError: (error) => {
+      if (
+        error instanceof Error &&
+        error.message === CATALOG_MUTATION_ERRORS.featuredLimit
+      ) {
+        return {
+          error: 'Límite alcanzado: máximo 10 disfraces destacados',
+          failureClass: 'conflict',
+        }
+      }
+      if (
+        error instanceof Error &&
+        (error.message === CATALOG_MUTATION_ERRORS.staleCostume ||
+          isTransactionConflict(error))
+      ) {
+        return { error: STALE_COSTUME_ERROR, failureClass: 'conflict' }
+      }
+      if (
+        error instanceof Error &&
+        error.message === CATALOG_MUTATION_ERRORS.costumeNotFound
+      ) {
+        return { error: 'Disfraz no encontrado', failureClass: 'not_found' }
+      }
+      return {
+        error: 'Error interno del servidor al actualizar el disfraz',
+        failureClass: 'database',
+      }
+    },
+    log: logActionOutcome,
+  })
+}
 
-    // Borrar imágenes de R2 en paralelo
-    await Promise.all(currentImages.map((img) => deleteImageAction(img.key)))
-
-    // Borrar de la base de datos (las imágenes asociadas se borrarán en cascada)
-    await prisma.costume.delete({
-      where: { id },
-    })
-
-    revalidatePath('/')
-    revalidatePath('/costumes')
-    revalidatePath('/costumes/[slug]', 'page')
-    revalidatePath('/admin')
-
-    return { success: true }
-  } catch (error) {
-    console.error('Error al eliminar disfraz:', error)
-    return { error: 'Error interno del servidor al eliminar el disfraz' }
-  }
+export async function deleteCostumeAction(id: string): Promise<ActionResult> {
+  return executeCostumeAction({
+    action: 'delete-costume',
+    authorize: checkAuth,
+    unauthorized,
+    parse: () => ({ data: id }),
+    mutate: deleteCostume,
+    complete: revalidateCostumePaths,
+    onError: () => ({
+      error: 'Error interno del servidor al eliminar el disfraz',
+      failureClass: 'database',
+    }),
+    log: logActionOutcome,
+  })
 }

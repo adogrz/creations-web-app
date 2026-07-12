@@ -19,11 +19,11 @@ import {
   createCostumeAction,
   updateCostumeAction,
 } from '@/app/admin/actions/costume-actions'
-import {
-  uploadImageAction,
-  deleteImageAction,
-} from '@/app/admin/actions/upload-actions'
+import { uploadImageAction } from '@/app/admin/actions/upload-actions'
 import { toast } from 'sonner'
+import { validateImageFile } from '@/lib/image-upload-validation'
+
+type UploadedImage = { url: string; key: string }
 
 function slugify(text: string) {
   return text
@@ -45,6 +45,7 @@ type FormImage = {
 
 type FormCostume = {
   id: string
+  updatedAt: string
   name: string
   slug: string
   categoryId: string
@@ -127,7 +128,12 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
 
   function handleFiles(files: FileList | null) {
     if (!files) return
-    const newItems = Array.from(files).map((file) => ({
+    const acceptedFiles = Array.from(files).filter((file) => {
+      const validationError = validateImageFile(file)
+      if (validationError) toast.error(`${file.name}: ${validationError}`)
+      return !validationError
+    })
+    const newItems = acceptedFiles.map((file) => ({
       url: URL.createObjectURL(file),
       file,
     }))
@@ -135,11 +141,14 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
   }
 
   function removePreview(url: string) {
-    const index = gallery.findIndex((item) => item.url === url)
+    const index = gallery.findIndex(
+      (item) => item.url === url && !item.isDeleted,
+    )
     if (index === -1) return
 
     const updated = [...gallery]
     const itemToRemove = updated[index]
+    const itemIdentity = itemToRemove.id ?? itemToRemove.key ?? itemToRemove.url
 
     // Marcar como eliminada
     updated[index] = { ...itemToRemove, isDeleted: true }
@@ -150,9 +159,13 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
       action: {
         label: 'Deshacer',
         onClick: () => {
-          const restored = [...updated]
-          restored[index] = { ...itemToRemove, isDeleted: false }
-          setGallery(restored)
+          setGallery((current) =>
+            current.map((item) =>
+              (item.id ?? item.key ?? item.url) === itemIdentity
+                ? { ...item, isDeleted: false }
+                : item,
+            ),
+          )
         },
       },
     })
@@ -171,19 +184,13 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
     startTransition(async () => {
       // 1. Subir nuevos archivos locales a R2 en paralelo
       const newItems = gallery.filter((item) => item.file && !item.isDeleted)
-      const uploadedList: { url: string; key: string }[] = []
-      const uploadedKeys: string[] = []
-
+      let uploadedList: UploadedImage[] = []
       // Obtener el ID del disfraz (existente o generado para la ruta en R2)
       const costumeId = costume?.id || crypto.randomUUID()
 
       const uploadPromises = newItems.map(async (item) => {
-        const uniqueId = crypto.randomUUID()
-        const customKey = `${categoryId}/${costumeId}/${uniqueId}.webp`
-
         const formData = new FormData()
         formData.append('file', item.file!)
-        formData.append('key', customKey)
 
         const res = await uploadImageAction(formData)
         if (res.success && res.url && res.key) {
@@ -193,28 +200,22 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
         }
       })
 
-      try {
-        const results = await Promise.all(uploadPromises)
-        for (const r of results) {
-          uploadedList.push(r)
-          uploadedKeys.push(r.key)
-        }
-      } catch (err: any) {
-        // Limpieza de emergencia de las imágenes subidas si alguna falla
-        for (const key of uploadedKeys) {
-          await deleteImageAction(key)
-        }
-        toast.error(err.message || 'Error al subir las imágenes a R2')
+      const results = await Promise.allSettled(uploadPromises)
+      uploadedList = results.flatMap((result) =>
+        result.status === 'fulfilled' ? [result.value] : [],
+      )
+      const failedUpload = results.find(
+        (result): result is PromiseRejectedResult =>
+          result.status === 'rejected',
+      )
+      if (failedUpload) {
+        toast.error(
+          failedUpload.reason?.message || 'Error al subir las imágenes a R2',
+        )
         return
       }
 
-      // 2. Eliminar de R2 los archivos que fueron borrados (solo existentes de BD)
-      const deletedItems = gallery.filter((item) => item.isDeleted && item.key)
-      for (const item of deletedItems) {
-        await deleteImageAction(item.key!)
-      }
-
-      // 3. Crear lista final de imágenes
+      // 2. Build the final image list.
       const finalImages = [
         ...gallery
           .filter((item) => item.key && !item.isDeleted)
@@ -226,33 +227,37 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
         ...uploadedList,
       ]
 
-      // 4. Agregar campos adicionales al FormData pre-capturado
+      // 3. Add fields to the FormData captured before the transition.
       submissionData.set('id', costumeId)
+      if (costume) submissionData.set('updatedAt', costume.updatedAt)
       submissionData.set('categoryId', categoryId)
       submissionData.set('audience', audience)
       submissionData.set('published', String(published))
       submissionData.set('featured', String(featured))
       submissionData.set('images', JSON.stringify(finalImages))
 
-      // 5. Enviar a la Server Action correspondiente
-      const res = costume
-        ? await updateCostumeAction(submissionData)
-        : await createCostumeAction(submissionData)
+      // 4. Submit to the matching Server Action.
+      try {
+        const res = costume
+          ? await updateCostumeAction(submissionData)
+          : await createCostumeAction(submissionData)
 
-      if (res.success) {
-        toast.success(
-          costume
-            ? 'Disfraz actualizado exitosamente'
-            : 'Disfraz creado exitosamente',
-        )
-        router.push('/admin')
-        router.refresh()
-      } else {
-        // Si falló el guardado en base de datos, limpiamos las subidas nuevas para evitar archivos huérfanos
-        for (const key of uploadedKeys) {
-          await deleteImageAction(key)
+        if ('success' in res && res.success) {
+          toast.success(
+            costume
+              ? 'Disfraz actualizado exitosamente'
+              : 'Disfraz creado exitosamente',
+          )
+          router.push('/admin')
+          router.refresh()
+        } else {
+          toast.error(
+            ('error' in res && res.error) ||
+              'Error al guardar los datos del disfraz',
+          )
         }
-        toast.error(res.error || 'Error al guardar los datos del disfraz')
+      } catch {
+        toast.error('No se pudo guardar el disfraz. Inténtalo de nuevo.')
       }
     })
   }
@@ -485,7 +490,7 @@ export function AdminForm({ costume, categories }: AdminFormProps) {
               </span>
               <span className="text-sm font-medium">Subir imágenes</span>
               <span className="text-muted-foreground text-xs">
-                PNG o JPG, arrastra o haz clic para buscar
+                PNG o JPG, máximo 9 MB
               </span>
             </button>
             <input

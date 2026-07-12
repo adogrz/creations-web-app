@@ -5,6 +5,7 @@ import { CategoryGrid } from '@/components/category-grid'
 import { CostumeCard } from '@/components/costume-card'
 import { ContactButtons } from '@/components/contact-buttons'
 import { getFeaturedCostumes, getSettings } from '@/lib/queries'
+import { escapeJsonForScript } from '@/lib/catalog-safeguards'
 
 export const dynamic = 'force-dynamic'
 
@@ -60,7 +61,7 @@ export default async function HomePage() {
     <div className="flex flex-col gap-10 pb-4">
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: escapeJsonForScript(jsonLd) }}
       />
       <HomeHero />
 
