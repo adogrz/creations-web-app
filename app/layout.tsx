@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_BASE_URL || 'https://creations.adogrz.com',
   ),
+  alternates: {
+    canonical: '/',
+  },
   title: {
     default: 'Creations — Disfraces personalizados hechos a mano',
     template: '%s | Creations',
